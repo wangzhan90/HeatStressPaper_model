@@ -1,0 +1,115 @@
+LTG command line: D:\GP\ltg.bat SIMPLEG_IGS
+
+[D:\GP\gptask.exe]
+[GPTASK 15 August 2011. Parameters: gfortran SIMPLEG_IGS ]
+
+GNU Fortran (x86_64-posix-seh-rev0, Built by MinGW-W64 project) 6.4.0
+Copyright (C) 2017 Free Software Foundation, Inc.
+This is free software; see the source for copying conditions.  There is NO
+warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+Running up to 12 compiles at once, with each compile doing up to 3 files.
+Launched slot 1: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs_c11.for" "simpleg_igs_c12.for" "simpleg_igs_u11.for"
+Launched slot 2: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs_u12.for" "simpleg_igs_v1.for" "simpleg_igs__10.for"
+Launched slot 3: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__13.for" "simpleg_igs__16.for" "simpleg_igs__18.for"
+Launched slot 4: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__20.for" "simpleg_igs__22.for" "simpleg_igs__23.for"
+Launched slot 5: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__25.for" "simpleg_igs__26.for" "simpleg_igs__28.for"
+Launched slot 6: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__29.for" "simpleg_igs__31.for" "simpleg_igs__32.for"
+Launched slot 7: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__34.for" "simpleg_igs__35.for" "simpleg_igs__36.for"
+Launched slot 8: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__38.for" "simpleg_igs__39.for" "simpleg_igs__40.for"
+Launched slot 9: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__41.for" "simpleg_igs__43.for" "simpleg_igs__45.for"
+Launched slot 10: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__46.for" "simpleg_igs__47.for" "simpleg_igs__48.for"
+Launched slot 11: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__49.for" "simpleg_igs__50.for" "simpleg_igs__51.for"
+Launched slot 12: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__52.for" "simpleg_igs__54.for" "simpleg_igs__55.for"
+Launched slot 1: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs_c1.for" "simpleg_igs_c31.for" "simpleg_igs_c32.for"
+Launched slot 2: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs_c51.for" "simpleg_igs_c52.for" "simpleg_igs_c61.for"
+Launched slot 1: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs_c3.for" "simpleg_igs_c62.for" "simpleg_igs_u1.for"
+Launched slot 9: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs_u31.for" "simpleg_igs_u32.for" "simpleg_igs_u51.for"
+Launched slot 5: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs_u52.for" "simpleg_igs_u61.for" "simpleg_igs_u62.for"
+Launched slot 11: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs_v3.for" "simpleg_igs_v5.for" "simpleg_igs_v6.for"
+Launched slot 5: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs_u6.for" "simpleg_igs__56.for" "simpleg_igs__57.for"
+Launched slot 6: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__58.for" "simpleg_igs__59.for" "simpleg_igs__60.for"
+Launched slot 7: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__61.for" "simpleg_igs__63.for" "simpleg_igs__64.for"
+Launched slot 8: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__65.for" "simpleg_igs__66.for" "simpleg_igs__67.for"
+Launched slot 10: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__68.for" "simpleg_igs__69.for" "simpleg_igs__70.for"
+Launched slot 12: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__72.for" "simpleg_igs__73.for" "simpleg_igs__74.for"
+Launched slot 1: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__75.for" "simpleg_igs__76.for" "simpleg_igs__77.for"
+Launched slot 3: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__78.for" "simpleg_igs__81.for" "simpleg_igs__84.for"
+Launched slot 4: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__85.for" "simpleg_igs__86.for" "simpleg_igs__87.for"
+Launched slot 9: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs_u3.for" "simpleg_igs_u5.for" "simpleg_igs_v0.for"
+Launched slot 11: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__88.for" "simpleg_igs__89.for" "simpleg_igs__90.for"
+Launched slot 9: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__91.for" "simpleg_igs__92.for" "simpleg_igs__94.for"
+Launched slot 5: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs_u0.for" "simpleg_igs__95.for" "simpleg_igs__96.for"
+Launched slot 6: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__97.for" "simpleg_igs__98.for" "simpleg_igs__99.for"
+Launched slot 7: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__100.for" "simpleg_igs__101.for" "simpleg_igs__102.for"
+Launched slot 8: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__103.for" "simpleg_igs__104.for" "simpleg_igs__105.for"
+Launched slot 10: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__106.for" "simpleg_igs__107.for" "simpleg_igs__108.for"
+Launched slot 12: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__109.for" "simpleg_igs__110.for" "simpleg_igs__111.for"
+Launched slot 1: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__113.for" "simpleg_igs__114.for" "simpleg_igs__115.for"
+Launched slot 4: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__116.for" "simpleg_igs__117.for" "simpleg_igs__118.for"
+Launched slot 5: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__119.for" "simpleg_igs__120.for" "simpleg_igs__122.for"
+Launched slot 3: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__123.for" "simpleg_igs__124.for" "simpleg_igs__125.for"
+Launched slot 11: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__126.for" "simpleg_igs__127.for" "simpleg_igs__128.for"
+Launched slot 9: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__129.for" "simpleg_igs__130.for" "simpleg_igs__131.for"
+Launched slot 12: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__132.for" "simpleg_igs__133.for" "simpleg_igs__134.for"
+Launched slot 10: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__135.for" "simpleg_igs__136.for" "simpleg_igs__137.for"
+Launched slot 8: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__139.for" "simpleg_igs__140.for" "simpleg_igs__141.for"
+Launched slot 1: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__142.for" "simpleg_igs__143.for" "simpleg_igs__144.for"
+Launched slot 3: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__145.for" "simpleg_igs__146.for" "simpleg_igs__147.for"
+Launched slot 4: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__148.for" "simpleg_igs__149.for" "simpleg_igs__150.for"
+Launched slot 5: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__151.for" "simpleg_igs__152.for" "simpleg_igs__153.for"
+Launched slot 7: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__154.for" "simpleg_igs__156.for" "simpleg_igs__157.for"
+Launched slot 6: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__158.for" "simpleg_igs__159.for" "simpleg_igs__160.for"
+Launched slot 12: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__161.for" "simpleg_igs__162.for" "simpleg_igs__163.for"
+Launched slot 9: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__164.for" "simpleg_igs__166.for" "simpleg_igs__167.for"
+Launched slot 11: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__168.for" "simpleg_igs__169.for" "simpleg_igs__170.for"
+Launched slot 10: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__171.for" "simpleg_igs__172.for" "simpleg_igs__173.for"
+Launched slot 5: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__174.for" "simpleg_igs__176.for" "simpleg_igs__177.for"
+Launched slot 8: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__178.for" "simpleg_igs__179.for" "simpleg_igs__180.for"
+Launched slot 4: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__181.for" "simpleg_igs__182.for" "simpleg_igs__183.for"
+Launched slot 7: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__185.for" "simpleg_igs__186.for" "simpleg_igs__187.for"
+Launched slot 6: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__188.for" "simpleg_igs__189.for" "simpleg_igs__190.for"
+Launched slot 1: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__191.for" "simpleg_igs__192.for" "simpleg_igs__193.for"
+Launched slot 9: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__194.for" "simpleg_igs__195.for" "simpleg_igs__196.for"
+Launched slot 3: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__197.for" "simpleg_igs__198.for" "simpleg_igs__199.for"
+Launched slot 10: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__200.for" "simpleg_igs__201.for" "simpleg_igs__202.for"
+Launched slot 11: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__204.for" "simpleg_igs__205.for" "simpleg_igs__206.for"
+Launched slot 12: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__207.for" "simpleg_igs__208.for" "simpleg_igs__209.for"
+Launched slot 8: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__210.for" "simpleg_igs__211.for" "simpleg_igs__213.for"
+Launched slot 5: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__214.for" "simpleg_igs__215.for" "simpleg_igs__216.for"
+Launched slot 7: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__217.for" "simpleg_igs__218.for" "simpleg_igs__219.for"
+Launched slot 4: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__220.for" "simpleg_igs__221.for" "simpleg_igs__223.for"
+Launched slot 10: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__224.for" "simpleg_igs__225.for" "simpleg_igs__226.for"
+Launched slot 9: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__227.for" "simpleg_igs__228.for" "simpleg_igs__229.for"
+Launched slot 3: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__230.for" "simpleg_igs__231.for" "simpleg_igs__233.for"
+Launched slot 6: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__234.for" "simpleg_igs__235.for" "simpleg_igs__236.for"
+Launched slot 1: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__237.for" "simpleg_igs__238.for" "simpleg_igs__239.for"
+Launched slot 5: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__240.for" "simpleg_igs__241.for" "simpleg_igs__242.for"
+Launched slot 1: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs_c5.for" "simpleg_igs_c6.for"
+Launched slot 1: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs_c0.for" "simpleg_igs__2.for" "simpleg_igs__3.for"
+Launched slot 2: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__4.for" "simpleg_igs__5.for" "simpleg_igs__6.for"
+Launched slot 3: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__7.for" "simpleg_igs__8.for" "simpleg_igs__9.for"
+Launched slot 4: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__11.for" "simpleg_igs__12.for" "simpleg_igs__14.for"
+Launched slot 5: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__15.for" "simpleg_igs__17.for" "simpleg_igs__19.for"
+Launched slot 7: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__21.for" "simpleg_igs__24.for" "simpleg_igs__27.for"
+Launched slot 8: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__30.for" "simpleg_igs__33.for" "simpleg_igs__37.for"
+Launched slot 9: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__42.for" "simpleg_igs__44.for" "simpleg_igs__53.for"
+Launched slot 10: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__62.for" "simpleg_igs__71.for" "simpleg_igs__79.for"
+Launched slot 11: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__80.for" "simpleg_igs__82.for" "simpleg_igs__83.for"
+Launched slot 12: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__93.for" "simpleg_igs__112.for" "simpleg_igs__121.for"
+Launched slot 6: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__138.for" "simpleg_igs__155.for" "simpleg_igs__165.for"
+Launched slot 1: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs_m0.for" "simpleg_igs__175.for" "simpleg_igs__184.for"
+Launched slot 2: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__203.for" "simpleg_igs__212.for" "simpleg_igs__222.for"
+Launched slot 3: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__232.for" "simpleg_igs__243.for"
+Launched slot 1: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__1.for"
+Finished OK 65.5 seconds 93 separate tasks
+
+E:\Workflow\HeatStress\model\SIMPLEG-US_HeatStress>gfortran  @optgf_3 @gfortran_link_ltg.fig -Wl,--start-group -lgpa -lgpb -ltbgdum -lmodlib -lgs -Wl,--end-group -L"D:\GP" -L.\ -lopenblas -lgomp -lpthread -o SIMPLEG_IGS.exe 
+[D:\GP\gptask.exe]
+[GPTASK 15 August 2011. Parameters: cleangf SIMPLEG_IGS deletefor]
+start time = 14:16:16.74       end time = 14:17:48.18             
+
+
+SIMPLEG_IGS.EXE made successfully
+
+

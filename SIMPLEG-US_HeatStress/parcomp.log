@@ -1,0 +1,301 @@
+Running up to 12 compiles at once, with each compile doing up to 3 files.
+Entering event loop, 0 tasks running; delay = 100
+Launched slot 1: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs_c11.for" "simpleg_igs_c12.for" "simpleg_igs_u11.for"
+Launched slot 2: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs_u12.for" "simpleg_igs_v1.for" "simpleg_igs__10.for"
+Launched slot 3: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__13.for" "simpleg_igs__16.for" "simpleg_igs__18.for"
+Launched slot 4: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__20.for" "simpleg_igs__22.for" "simpleg_igs__23.for"
+Launched slot 5: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__25.for" "simpleg_igs__26.for" "simpleg_igs__28.for"
+Launched slot 6: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__29.for" "simpleg_igs__31.for" "simpleg_igs__32.for"
+Launched slot 7: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__34.for" "simpleg_igs__35.for" "simpleg_igs__36.for"
+Launched slot 8: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__38.for" "simpleg_igs__39.for" "simpleg_igs__40.for"
+Launched slot 9: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__41.for" "simpleg_igs__43.for" "simpleg_igs__45.for"
+Launched slot 10: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__46.for" "simpleg_igs__47.for" "simpleg_igs__48.for"
+Launched slot 11: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__49.for" "simpleg_igs__50.for" "simpleg_igs__51.for"
+Launched slot 12: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__52.for" "simpleg_igs__54.for" "simpleg_igs__55.for"
+Entering event loop, 12 tasks running; delay = 120
+Entering event loop, 12 tasks running; delay = 144
+Entering event loop, 12 tasks running; delay = 173
+Task 1 done, created 1 simpleg_igs_c11.o 2 simpleg_igs_c12.o 3 simpleg_igs_u11.o
+Launched slot 1: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs_c1.for" "simpleg_igs_c31.for" "simpleg_igs_c32.for"
+Entering event loop, 12 tasks running; delay = 173
+Entering event loop, 12 tasks running; delay = 208
+Entering event loop, 12 tasks running; delay = 250
+Entering event loop, 12 tasks running; delay = 300
+Entering event loop, 12 tasks running; delay = 360
+Entering event loop, 12 tasks running; delay = 432
+Task 2 done, created 4 simpleg_igs_u12.o 5 simpleg_igs_v1.o 6 simpleg_igs__10.o
+Launched slot 2: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs_c51.for" "simpleg_igs_c52.for" "simpleg_igs_c61.for"
+Entering event loop, 12 tasks running; delay = 432
+Task 1 done, created 7 simpleg_igs_c1.o 8 simpleg_igs_c31.o 9 simpleg_igs_c32.o
+Launched slot 1: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs_c3.for" "simpleg_igs_c62.for" "simpleg_igs_u1.for"
+Entering event loop, 12 tasks running; delay = 432
+Task 9 done, created 10 simpleg_igs__41.o 11 simpleg_igs__43.o 12 simpleg_igs__45.o
+Launched slot 9: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs_u31.for" "simpleg_igs_u32.for" "simpleg_igs_u51.for"
+Entering event loop, 12 tasks running; delay = 432
+Entering event loop, 12 tasks running; delay = 500
+Task 5 done, created 13 simpleg_igs__25.o 14 simpleg_igs__26.o 15 simpleg_igs__28.o
+Task 11 done, created 16 simpleg_igs__49.o 17 simpleg_igs__50.o 18 simpleg_igs__51.o
+Launched slot 5: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs_u52.for" "simpleg_igs_u61.for" "simpleg_igs_u62.for"
+Launched slot 11: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs_v3.for" "simpleg_igs_v5.for" "simpleg_igs_v6.for"
+Entering event loop, 12 tasks running; delay = 400
+Task 5 done, created 19 simpleg_igs_u52.o 20 simpleg_igs_u61.o 21 simpleg_igs_u62.o
+Task 6 done, created 22 simpleg_igs__29.o 23 simpleg_igs__31.o 24 simpleg_igs__32.o
+Task 7 done, created 25 simpleg_igs__34.o 26 simpleg_igs__35.o 27 simpleg_igs__36.o
+Task 8 done, created 28 simpleg_igs__38.o 29 simpleg_igs__39.o 30 simpleg_igs__40.o
+Task 10 done, created 31 simpleg_igs__46.o 32 simpleg_igs__47.o 33 simpleg_igs__48.o
+Task 12 done, created 34 simpleg_igs__52.o 35 simpleg_igs__54.o 36 simpleg_igs__55.o
+Launched slot 5: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs_u6.for" "simpleg_igs__56.for" "simpleg_igs__57.for"
+Launched slot 6: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__58.for" "simpleg_igs__59.for" "simpleg_igs__60.for"
+Launched slot 7: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__61.for" "simpleg_igs__63.for" "simpleg_igs__64.for"
+Launched slot 8: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__65.for" "simpleg_igs__66.for" "simpleg_igs__67.for"
+Launched slot 10: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__68.for" "simpleg_igs__69.for" "simpleg_igs__70.for"
+Launched slot 12: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__72.for" "simpleg_igs__73.for" "simpleg_igs__74.for"
+Entering event loop, 12 tasks running; delay = 320
+Task 1 done, created 37 simpleg_igs_c3.o 38 simpleg_igs_c62.o 39 simpleg_igs_u1.o
+Task 3 done, created 40 simpleg_igs__13.o 41 simpleg_igs__16.o 42 simpleg_igs__18.o
+Task 4 done, created 43 simpleg_igs__20.o 44 simpleg_igs__22.o 45 simpleg_igs__23.o
+Launched slot 1: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__75.for" "simpleg_igs__76.for" "simpleg_igs__77.for"
+Launched slot 3: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__78.for" "simpleg_igs__81.for" "simpleg_igs__84.for"
+Launched slot 4: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__85.for" "simpleg_igs__86.for" "simpleg_igs__87.for"
+Entering event loop, 12 tasks running; delay = 256
+Task 9 done, created 46 simpleg_igs_u31.o 47 simpleg_igs_u32.o 48 simpleg_igs_u51.o
+Task 11 done, created 49 simpleg_igs_v3.o 50 simpleg_igs_v5.o 51 simpleg_igs_v6.o
+Launched slot 9: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs_u3.for" "simpleg_igs_u5.for" "simpleg_igs_v0.for"
+Launched slot 11: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__88.for" "simpleg_igs__89.for" "simpleg_igs__90.for"
+Entering event loop, 12 tasks running; delay = 205
+Entering event loop, 12 tasks running; delay = 246
+Task 9 done, created 52 simpleg_igs_u3.o 53 simpleg_igs_u5.o 54 simpleg_igs_v0.o
+Launched slot 9: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__91.for" "simpleg_igs__92.for" "simpleg_igs__94.for"
+Entering event loop, 12 tasks running; delay = 246
+Entering event loop, 12 tasks running; delay = 295
+Task 5 done, created 55 simpleg_igs_u6.o 56 simpleg_igs__56.o 57 simpleg_igs__57.o
+Launched slot 5: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs_u0.for" "simpleg_igs__95.for" "simpleg_igs__96.for"
+Entering event loop, 12 tasks running; delay = 295
+Entering event loop, 12 tasks running; delay = 354
+Entering event loop, 12 tasks running; delay = 425
+Entering event loop, 12 tasks running; delay = 500
+Entering event loop, 12 tasks running; delay = 500
+Task 6 done, created 58 simpleg_igs__58.o 59 simpleg_igs__59.o 60 simpleg_igs__60.o
+Task 7 done, created 61 simpleg_igs__61.o 62 simpleg_igs__63.o 63 simpleg_igs__64.o
+Task 8 done, created 64 simpleg_igs__65.o 65 simpleg_igs__66.o 66 simpleg_igs__67.o
+Task 10 done, created 67 simpleg_igs__68.o 68 simpleg_igs__69.o 69 simpleg_igs__70.o
+Task 12 done, created 70 simpleg_igs__72.o 71 simpleg_igs__73.o 72 simpleg_igs__74.o
+Launched slot 6: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__97.for" "simpleg_igs__98.for" "simpleg_igs__99.for"
+Launched slot 7: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__100.for" "simpleg_igs__101.for" "simpleg_igs__102.for"
+Launched slot 8: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__103.for" "simpleg_igs__104.for" "simpleg_igs__105.for"
+Launched slot 10: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__106.for" "simpleg_igs__107.for" "simpleg_igs__108.for"
+Launched slot 12: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__109.for" "simpleg_igs__110.for" "simpleg_igs__111.for"
+Entering event loop, 12 tasks running; delay = 400
+Task 1 done, created 73 simpleg_igs__75.o 74 simpleg_igs__76.o 75 simpleg_igs__77.o
+Launched slot 1: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__113.for" "simpleg_igs__114.for" "simpleg_igs__115.for"
+Entering event loop, 12 tasks running; delay = 400
+Task 4 done, created 76 simpleg_igs__85.o 77 simpleg_igs__86.o 78 simpleg_igs__87.o
+Task 5 done, created 79 simpleg_igs_u0.o 80 simpleg_igs__95.o 81 simpleg_igs__96.o
+Launched slot 4: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__116.for" "simpleg_igs__117.for" "simpleg_igs__118.for"
+Launched slot 5: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__119.for" "simpleg_igs__120.for" "simpleg_igs__122.for"
+Entering event loop, 12 tasks running; delay = 320
+Task 3 done, created 82 simpleg_igs__78.o 83 simpleg_igs__81.o 84 simpleg_igs__84.o
+Task 11 done, created 85 simpleg_igs__88.o 86 simpleg_igs__89.o 87 simpleg_igs__90.o
+Launched slot 3: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__123.for" "simpleg_igs__124.for" "simpleg_igs__125.for"
+Launched slot 11: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__126.for" "simpleg_igs__127.for" "simpleg_igs__128.for"
+Entering event loop, 12 tasks running; delay = 256
+Task 9 done, created 88 simpleg_igs__91.o 89 simpleg_igs__92.o 90 simpleg_igs__94.o
+Launched slot 9: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__129.for" "simpleg_igs__130.for" "simpleg_igs__131.for"
+Entering event loop, 12 tasks running; delay = 256
+Entering event loop, 12 tasks running; delay = 307
+Entering event loop, 12 tasks running; delay = 368
+Entering event loop, 12 tasks running; delay = 442
+Entering event loop, 12 tasks running; delay = 500
+Task 12 done, created 91 simpleg_igs__109.o 92 simpleg_igs__110.o 93 simpleg_igs__111.o
+Launched slot 12: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__132.for" "simpleg_igs__133.for" "simpleg_igs__134.for"
+Entering event loop, 12 tasks running; delay = 500
+Entering event loop, 12 tasks running; delay = 500
+Task 10 done, created 94 simpleg_igs__106.o 95 simpleg_igs__107.o 96 simpleg_igs__108.o
+Launched slot 10: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__135.for" "simpleg_igs__136.for" "simpleg_igs__137.for"
+Entering event loop, 12 tasks running; delay = 500
+Task 8 done, created 97 simpleg_igs__103.o 98 simpleg_igs__104.o 99 simpleg_igs__105.o
+Launched slot 8: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__139.for" "simpleg_igs__140.for" "simpleg_igs__141.for"
+Entering event loop, 12 tasks running; delay = 500
+Task 1 done, created 100 simpleg_igs__113.o 101 simpleg_igs__114.o 102 simpleg_igs__115.o
+Launched slot 1: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__142.for" "simpleg_igs__143.for" "simpleg_igs__144.for"
+Entering event loop, 12 tasks running; delay = 500
+Task 3 done, created 103 simpleg_igs__123.o 104 simpleg_igs__124.o 105 simpleg_igs__125.o
+Task 4 done, created 106 simpleg_igs__116.o 107 simpleg_igs__117.o 108 simpleg_igs__118.o
+Task 5 done, created 109 simpleg_igs__119.o 110 simpleg_igs__120.o 111 simpleg_igs__122.o
+Task 7 done, created 112 simpleg_igs__100.o 113 simpleg_igs__101.o 114 simpleg_igs__102.o
+Launched slot 3: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__145.for" "simpleg_igs__146.for" "simpleg_igs__147.for"
+Launched slot 4: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__148.for" "simpleg_igs__149.for" "simpleg_igs__150.for"
+Launched slot 5: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__151.for" "simpleg_igs__152.for" "simpleg_igs__153.for"
+Launched slot 7: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__154.for" "simpleg_igs__156.for" "simpleg_igs__157.for"
+Entering event loop, 12 tasks running; delay = 400
+Task 6 done, created 115 simpleg_igs__97.o 116 simpleg_igs__98.o 117 simpleg_igs__99.o
+Launched slot 6: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__158.for" "simpleg_igs__159.for" "simpleg_igs__160.for"
+Entering event loop, 12 tasks running; delay = 400
+Entering event loop, 12 tasks running; delay = 480
+Entering event loop, 12 tasks running; delay = 500
+Task 12 done, created 118 simpleg_igs__132.o 119 simpleg_igs__133.o 120 simpleg_igs__134.o
+Launched slot 12: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__161.for" "simpleg_igs__162.for" "simpleg_igs__163.for"
+Entering event loop, 12 tasks running; delay = 500
+Entering event loop, 12 tasks running; delay = 500
+Task 9 done, created 121 simpleg_igs__129.o 122 simpleg_igs__130.o 123 simpleg_igs__131.o
+Task 11 done, created 124 simpleg_igs__126.o 125 simpleg_igs__127.o 126 simpleg_igs__128.o
+Launched slot 9: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__164.for" "simpleg_igs__166.for" "simpleg_igs__167.for"
+Launched slot 11: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__168.for" "simpleg_igs__169.for" "simpleg_igs__170.for"
+Entering event loop, 12 tasks running; delay = 400
+Task 10 done, created 127 simpleg_igs__135.o 128 simpleg_igs__136.o 129 simpleg_igs__137.o
+Launched slot 10: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__171.for" "simpleg_igs__172.for" "simpleg_igs__173.for"
+Entering event loop, 12 tasks running; delay = 400
+Task 5 done, created 130 simpleg_igs__151.o 131 simpleg_igs__152.o 132 simpleg_igs__153.o
+Task 8 done, created 133 simpleg_igs__139.o 134 simpleg_igs__140.o 135 simpleg_igs__141.o
+Launched slot 5: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__174.for" "simpleg_igs__176.for" "simpleg_igs__177.for"
+Launched slot 8: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__178.for" "simpleg_igs__179.for" "simpleg_igs__180.for"
+Entering event loop, 12 tasks running; delay = 320
+Entering event loop, 12 tasks running; delay = 384
+Task 4 done, created 136 simpleg_igs__148.o 137 simpleg_igs__149.o 138 simpleg_igs__150.o
+Task 7 done, created 139 simpleg_igs__154.o 140 simpleg_igs__156.o 141 simpleg_igs__157.o
+Launched slot 4: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__181.for" "simpleg_igs__182.for" "simpleg_igs__183.for"
+Launched slot 7: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__185.for" "simpleg_igs__186.for" "simpleg_igs__187.for"
+Entering event loop, 12 tasks running; delay = 307
+Task 6 done, created 142 simpleg_igs__158.o 143 simpleg_igs__159.o 144 simpleg_igs__160.o
+Launched slot 6: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__188.for" "simpleg_igs__189.for" "simpleg_igs__190.for"
+Entering event loop, 12 tasks running; delay = 307
+Entering event loop, 12 tasks running; delay = 368
+Entering event loop, 12 tasks running; delay = 442
+Entering event loop, 12 tasks running; delay = 500
+Task 1 done, created 145 simpleg_igs__142.o 146 simpleg_igs__143.o 147 simpleg_igs__144.o
+Launched slot 1: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__191.for" "simpleg_igs__192.for" "simpleg_igs__193.for"
+Entering event loop, 12 tasks running; delay = 500
+Task 9 done, created 148 simpleg_igs__164.o 149 simpleg_igs__166.o 150 simpleg_igs__167.o
+Launched slot 9: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__194.for" "simpleg_igs__195.for" "simpleg_igs__196.for"
+Entering event loop, 12 tasks running; delay = 500
+Task 3 done, created 151 simpleg_igs__145.o 152 simpleg_igs__146.o 153 simpleg_igs__147.o
+Task 10 done, created 154 simpleg_igs__171.o 155 simpleg_igs__172.o 156 simpleg_igs__173.o
+Task 11 done, created 157 simpleg_igs__168.o 158 simpleg_igs__169.o 159 simpleg_igs__170.o
+Task 12 done, created 160 simpleg_igs__161.o 161 simpleg_igs__162.o 162 simpleg_igs__163.o
+Launched slot 3: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__197.for" "simpleg_igs__198.for" "simpleg_igs__199.for"
+Launched slot 10: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__200.for" "simpleg_igs__201.for" "simpleg_igs__202.for"
+Launched slot 11: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__204.for" "simpleg_igs__205.for" "simpleg_igs__206.for"
+Launched slot 12: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__207.for" "simpleg_igs__208.for" "simpleg_igs__209.for"
+Entering event loop, 12 tasks running; delay = 400
+Task 8 done, created 163 simpleg_igs__178.o 164 simpleg_igs__179.o 165 simpleg_igs__180.o
+Launched slot 8: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__210.for" "simpleg_igs__211.for" "simpleg_igs__213.for"
+Entering event loop, 12 tasks running; delay = 400
+Task 5 done, created 166 simpleg_igs__174.o 167 simpleg_igs__176.o 168 simpleg_igs__177.o
+Launched slot 5: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__214.for" "simpleg_igs__215.for" "simpleg_igs__216.for"
+Entering event loop, 12 tasks running; delay = 400
+Task 7 done, created 169 simpleg_igs__185.o 170 simpleg_igs__186.o 171 simpleg_igs__187.o
+Launched slot 7: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__217.for" "simpleg_igs__218.for" "simpleg_igs__219.for"
+Entering event loop, 12 tasks running; delay = 400
+Task 4 done, created 172 simpleg_igs__181.o 173 simpleg_igs__182.o 174 simpleg_igs__183.o
+Launched slot 4: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__220.for" "simpleg_igs__221.for" "simpleg_igs__223.for"
+Entering event loop, 12 tasks running; delay = 400
+Entering event loop, 12 tasks running; delay = 480
+Entering event loop, 12 tasks running; delay = 500
+Task 10 done, created 175 simpleg_igs__200.o 176 simpleg_igs__201.o 177 simpleg_igs__202.o
+Launched slot 10: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__224.for" "simpleg_igs__225.for" "simpleg_igs__226.for"
+Entering event loop, 12 tasks running; delay = 500
+Task 9 done, created 178 simpleg_igs__194.o 179 simpleg_igs__195.o 180 simpleg_igs__196.o
+Launched slot 9: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__227.for" "simpleg_igs__228.for" "simpleg_igs__229.for"
+Entering event loop, 12 tasks running; delay = 500
+Task 3 done, created 181 simpleg_igs__197.o 182 simpleg_igs__198.o 183 simpleg_igs__199.o
+Launched slot 3: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__230.for" "simpleg_igs__231.for" "simpleg_igs__233.for"
+Entering event loop, 12 tasks running; delay = 500
+Task 6 done, created 184 simpleg_igs__188.o 185 simpleg_igs__189.o 186 simpleg_igs__190.o
+Launched slot 6: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__234.for" "simpleg_igs__235.for" "simpleg_igs__236.for"
+Entering event loop, 12 tasks running; delay = 500
+Task 1 done, created 187 simpleg_igs__191.o 188 simpleg_igs__192.o 189 simpleg_igs__193.o
+Task 5 done, created 190 simpleg_igs__214.o 191 simpleg_igs__215.o 192 simpleg_igs__216.o
+Task 11 done, created 193 simpleg_igs__204.o 194 simpleg_igs__205.o 195 simpleg_igs__206.o
+Task 12 done, created 196 simpleg_igs__207.o 197 simpleg_igs__208.o 198 simpleg_igs__209.o
+Launched slot 1: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__237.for" "simpleg_igs__238.for" "simpleg_igs__239.for"
+Launched slot 5: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__240.for" "simpleg_igs__241.for" "simpleg_igs__242.for"
+Entering event loop, 10 tasks running; delay = 400
+Task 8 done, created 199 simpleg_igs__210.o 200 simpleg_igs__211.o 201 simpleg_igs__213.o
+Entering event loop, 9 tasks running; delay = 400
+Task 4 done, created 202 simpleg_igs__220.o 203 simpleg_igs__221.o 204 simpleg_igs__223.o
+Task 7 done, created 205 simpleg_igs__217.o 206 simpleg_igs__218.o 207 simpleg_igs__219.o
+Entering event loop, 7 tasks running; delay = 320
+Task 3 done, created 208 simpleg_igs__230.o 209 simpleg_igs__231.o 210 simpleg_igs__233.o
+Entering event loop, 6 tasks running; delay = 320
+Entering event loop, 6 tasks running; delay = 384
+Task 10 done, created 211 simpleg_igs__224.o 212 simpleg_igs__225.o 213 simpleg_igs__226.o
+Entering event loop, 5 tasks running; delay = 384
+Entering event loop, 5 tasks running; delay = 461
+Entering event loop, 5 tasks running; delay = 500
+Task 9 done, created 214 simpleg_igs__227.o 215 simpleg_igs__228.o 216 simpleg_igs__229.o
+Entering event loop, 4 tasks running; delay = 500
+Task 1 done, created 217 simpleg_igs__237.o 218 simpleg_igs__238.o 219 simpleg_igs__239.o
+Entering event loop, 3 tasks running; delay = 500
+Entering event loop, 3 tasks running; delay = 500
+Task 5 done, created 220 simpleg_igs__240.o 221 simpleg_igs__241.o 222 simpleg_igs__242.o
+Entering event loop, 2 tasks running; delay = 500
+Entering event loop, 2 tasks running; delay = 500
+Task 2 done, created 223 simpleg_igs_c51.o 224 simpleg_igs_c52.o 225 simpleg_igs_c61.o
+Launched slot 1: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs_c5.for" "simpleg_igs_c6.for"
+Entering event loop, 2 tasks running; delay = 500
+Task 1 done, created 226 simpleg_igs_c5.o 227 simpleg_igs_c6.o
+Launched slot 1: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs_c0.for" "simpleg_igs__2.for" "simpleg_igs__3.for"
+Launched slot 2: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__4.for" "simpleg_igs__5.for" "simpleg_igs__6.for"
+Launched slot 3: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__7.for" "simpleg_igs__8.for" "simpleg_igs__9.for"
+Launched slot 4: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__11.for" "simpleg_igs__12.for" "simpleg_igs__14.for"
+Launched slot 5: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__15.for" "simpleg_igs__17.for" "simpleg_igs__19.for"
+Launched slot 7: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__21.for" "simpleg_igs__24.for" "simpleg_igs__27.for"
+Launched slot 8: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__30.for" "simpleg_igs__33.for" "simpleg_igs__37.for"
+Launched slot 9: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__42.for" "simpleg_igs__44.for" "simpleg_igs__53.for"
+Launched slot 10: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__62.for" "simpleg_igs__71.for" "simpleg_igs__79.for"
+Launched slot 11: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__80.for" "simpleg_igs__82.for" "simpleg_igs__83.for"
+Launched slot 12: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__93.for" "simpleg_igs__112.for" "simpleg_igs__121.for"
+Entering event loop, 12 tasks running; delay = 500
+Entering event loop, 12 tasks running; delay = 500
+Entering event loop, 12 tasks running; delay = 500
+Entering event loop, 12 tasks running; delay = 500
+Entering event loop, 12 tasks running; delay = 500
+Entering event loop, 12 tasks running; delay = 500
+Task 6 done, created 228 simpleg_igs__234.o 229 simpleg_igs__235.o 230 simpleg_igs__236.o
+Launched slot 6: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__138.for" "simpleg_igs__155.for" "simpleg_igs__165.for"
+Entering event loop, 12 tasks running; delay = 500
+Task 1 done, created 231 simpleg_igs_c0.o 232 simpleg_igs__2.o 233 simpleg_igs__3.o
+Launched slot 1: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs_m0.for" "simpleg_igs__175.for" "simpleg_igs__184.for"
+Entering event loop, 12 tasks running; delay = 500
+Entering event loop, 12 tasks running; delay = 500
+Entering event loop, 12 tasks running; delay = 500
+Entering event loop, 12 tasks running; delay = 500
+Entering event loop, 12 tasks running; delay = 500
+Task 2 done, created 234 simpleg_igs__4.o 235 simpleg_igs__5.o 236 simpleg_igs__6.o
+Launched slot 2: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__203.for" "simpleg_igs__212.for" "simpleg_igs__222.for"
+Entering event loop, 12 tasks running; delay = 500
+Task 3 done, created 237 simpleg_igs__7.o 238 simpleg_igs__8.o 239 simpleg_igs__9.o
+Task 4 done, created 240 simpleg_igs__11.o 241 simpleg_igs__12.o 242 simpleg_igs__14.o
+Task 5 done, created 243 simpleg_igs__15.o 244 simpleg_igs__17.o 245 simpleg_igs__19.o
+Task 7 done, created 246 simpleg_igs__21.o 247 simpleg_igs__24.o 248 simpleg_igs__27.o
+Task 8 done, created 249 simpleg_igs__30.o 250 simpleg_igs__33.o 251 simpleg_igs__37.o
+Task 9 done, created 252 simpleg_igs__42.o 253 simpleg_igs__44.o 254 simpleg_igs__53.o
+Launched slot 3: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__232.for" "simpleg_igs__243.for"
+Entering event loop, 7 tasks running; delay = 400
+Task 10 done, created 255 simpleg_igs__62.o 256 simpleg_igs__71.o 257 simpleg_igs__79.o
+Task 11 done, created 258 simpleg_igs__80.o 259 simpleg_igs__82.o 260 simpleg_igs__83.o
+Entering event loop, 5 tasks running; delay = 320
+Entering event loop, 5 tasks running; delay = 384
+Task 12 done, created 261 simpleg_igs__93.o 262 simpleg_igs__112.o 263 simpleg_igs__121.o
+Entering event loop, 4 tasks running; delay = 384
+Task 1 done, created 264 simpleg_igs_m0.o 265 simpleg_igs__175.o 266 simpleg_igs__184.o
+Task 6 done, created 267 simpleg_igs__138.o 268 simpleg_igs__155.o 269 simpleg_igs__165.o
+Launched slot 1: gfortran -I "D:\GP\includes" -I "D:\GP\modules" @optin_1 "simpleg_igs__1.for"
+Entering event loop, 3 tasks running; delay = 307
+Entering event loop, 3 tasks running; delay = 368
+Entering event loop, 3 tasks running; delay = 442
+Entering event loop, 3 tasks running; delay = 500
+Task 2 done, created 270 simpleg_igs__203.o 271 simpleg_igs__212.o 272 simpleg_igs__222.o
+Entering event loop, 2 tasks running; delay = 500
+Entering event loop, 2 tasks running; delay = 500
+Entering event loop, 2 tasks running; delay = 500
+Entering event loop, 2 tasks running; delay = 500
+Entering event loop, 2 tasks running; delay = 500
+Entering event loop, 2 tasks running; delay = 500
+Entering event loop, 2 tasks running; delay = 500
+Entering event loop, 2 tasks running; delay = 500
+Task 3 done, created 273 simpleg_igs__232.o 274 simpleg_igs__243.o
+Entering event loop, 1 tasks running; delay = 500
+Entering event loop, 1 tasks running; delay = 500
+Task 1 done, created 275 simpleg_igs__1.o
+Finished OK 65.5 seconds 93 separate tasks

@@ -1,0 +1,2393 @@
+!===========================================================================!
+!  SIMPLE-G                                                                 !
+!          a Simplified International Model of agricultural Prices,         !
+!          Land use and the Environment                                     !
+!          Global to Local Analysis of Systems Sustainability               !
+!          Purdue University, IN, USA                                       !
+!===========================================================================!
+
+!=====================================================================!
+!  SIMPLEG-US-v23p7-a2b1c2d2                                          !
+!          2x production technology (irrigated and rainfed)           !
+!          7x inputs                                                  !
+!          1x composite allcrops                                      !
+!          a: water, 0=NA, 1=aggregate, 2=split-grd-srf               !
+!          b: labor, 0=NA, 1=share in other, 2=zones, 3=migrant,      !
+!          c: crop, 1=similarity, 2=sub-regional het, 3=mix           !
+!          d: land, 0=single, 1=CET, 2=QCET, 3=nested-QCET allocation !
+!=====================================================================!
+
+
+!
+****************************************************************************
+---- References and citations
+****************************************************************************
+  A SIMPLE-G model by Mark : 
+        - Horridge (2016)
+        - tpmh0159: August 2016
+        - Example of effective condensation (automatic substitution) 
+        - allows GEMPACK to solve quite large models fairly quickly
+        - https://www.copsmodels.com/archivep/tpmh0159.zip        
+
+  SIMPLE-G-Global-AllCrops_12-09-2015
+        - Liu et al (2017)
+        - SIMPLEg segmented -12-09-15.7z
+        - master version
+        - Global gridded
+        - https://dx.doi.org/10.1088/1748-9326/aa88db
+        
+  SIMPLE-G-US-AllCrops_08-14-2018
+        - Haqiqi et al (2018)
+        - SIMPLE-G-W_US-npc.zip
+        - added: water by source
+        - complementarity for water supply
+        - https://docs.lib.purdue.edu/gpripb/vol4/iss1/7
+
+  SIMPLE-G-US-AllCrops_03-17-2020
+        - Baldos et al (2020)
+        - improved condensation
+        - EnvModPaper_200317.zip
+        - https://doi.org/10.1016/j.envsoft.2020.104805
+
+  SIMPLE-G-US-AllCrops_05-04-2022
+        - Haqiqi et al (2023)
+        - ERl2022_GW.zip
+        - Published in ERL
+        - https://doi.org/10.1088/1748-9326/acd269
+
+  SIMPLE-G-US-AllCrops_07-17-2023
+        - For I-GUIDE summer School
+        - SIMPLEG-IGS-2023.zip
+        - with mini model
+        = labor as a share of other inputs (no explicit labor market)
+        - https://mygeohub.org/tools/simplegus 
+!
+
+!
+****************************************************************************
+---- introduction
+****************************************************************************
+We have four main inputs in the production:
+    CROPgl     : Corn equivalent crop output
+    LANDgl  (L): Harvested cropland area by land type at each grid cell
+    NITROgl (N): Nitrogen fertilizer applied by land type at each grid cell
+    WATERgl (W): Total irrigation activity by land type at each grid cell
+    NLANDgl (O): Aggregate of other inputs by land type at each grid cell
+
+Irrigation activity requires water and other irrigation inputs:
+WATSGgl (WW): Water (groundwater + surface water) by land type at each grid cell
+    WEQPTgl (WK): water conserving eqpt by land type at each grid cell
+    WATSRFgl (WS): surface water
+    WATGRDgl (WG): groundwater
+
+
+Market clearing:
+        - global market clearing for crops
+        - Regional market clearing for nitrogen fertilizer and non-land inputs
+        - Grid cell market clearing for water and land
+
+Prefixes and sufixes:
+    Q      for quantitiy and volume index
+    V      for value variables
+    P      for price index
+    p_     percentage change
+    E     elasticity parameters
+    E_    equation
+    gl    grid and land type
+    SHR   share coefficient
+    A     productivity/efficiency index
+    s     slack/subsidy variable
+    t     tax/subsidy variable
+
+
+
+ Basic model structure is as follows:                  
+
+********************
+* DEMAND STRUCTURE *
+********************
+                  INC_PC
+                    /
+- EOP / + EINC  <-- ad-hoc demand system
+                  /
+         POP    QPC
+          \     /
+           QCONS -------------------------------------------
+             |                      |                      |
+             |                      |                      |
+       QCONS("Crops")     QCONS("Livestock")     QCONS("Proc_Food")
+             |              /         \                /         \
+             |     ces-->  /-----------\       ces--> /-----------\
+             |            /  ECRPFEED   \            /   ECRPFOOD  \
+             |           /               \          /               \
+             |        QNCRPFEED      QCRPFEED   QNCRPFOOD       QCRPFOOD
+             |                          |                          |
+             |                          |                          |
+             |--------------------------|--------------------------|
+                                        |
+                                     QDCROPr
+                                        |
+********************                    |
+* MARKET STRUCTURE *                    |
+********************       |-------------------------|    <--ces
+                           |          ESUBr          |
+          QCRPBIOr --------|                         |
+                           |                         |
+                           |                         |
+                     QDCROPr("local")          QDCROPr("global")
+                           =                         =
+                     QSCROPr("local")          QSCROPr("global")
+                           |                         |
+                           |         ETRANSr         |
+                           |-------------------------|     <--cet
+                                        |
+                                     QSCROPr
+                                        |
+********************                 QCROPgl
+* SUPPLY STRUCTURE *                /      \
+********************               /        \
+                                  /----------\       <--ces
+                                 /  ECROPgl   \
+                                /              \
+                          QAUGLANDgl         QNITROgl
+                            /      \
+                           /--------\                 <--ces
+                          /EAUGLANDgl\
+                         /            \
+                        /              \
+                   QNLANDgl         QLANDWTRgl
+                  /       \         /       \
+         ces --> /---------\       /         \
+                / ESUB_LCgl \     /-----------\        <--ces
+           QLABORgl       QCAPgl /  EIRRIGgl   \
+                                /               \
+               QLANDgl*       QLANDgl        QWATERgl
+                  \              /         /        \
+           cet-->  \ETRAN_LANDg/          / -------  \  <--ces
+                     \       /           /  ESUB_WKgl \
+                      \    /            /              \
+                      QLANDg        QWATSGgl         QWEQPTgl
+                                   /       \
+                                  /         \
+                                 /-----------\        <--ces
+                                /  ESUB_SGgl  \
+                               /               \
+                            QWATSRFgl     QWATGRDgl
+
+
+* Note: CET function determines the size of land supply for each land type
+        e.g. rainfed and irrigated
+!
+
+
+!   *****************************************
+    Crop CES nest structure
+    ***************************************** !
+!
+        AOCROPr -->          QCROPgl
+                            /      \
+                           /--------\
+                          /  ECROPgl \
+                         /            \
+                        /              \
+    AFAUGLANDr -->  QAUGLANDgl        QNITROgl  <-- AFNITROg
+
+
+
+    In this version, the top CES nest in crop production is defined for both
+    irrigated and rainfed crop sector. It combines the hypothetical augmented
+    land inputs with nitrogen inputs in order to produce crop outputs.
+    There are several nests below the hypothetical augmented land inputs as we
+    will see shortly.
+
+    Prices for nitrogen and crops are determined at the national level.
+    Elasticity of substitution parameters between nitrogen and augmented land
+   are gridded and based on physical yield relationships between N and land.!
+
+
+!   *********************************
+    Augmented land CES nest
+    *********************************   !
+!
+                   QAUGLANDgl
+                    /     \
+                   /-------\
+                  /EAUGLANDr\
+                 /           \
+                /             \
+            QNLANDgl       QLANDWTRgl
+               +
+            ENLANDr
+
+    Under the augmented land CES nest, we combined non-land inputs (capital,
+    labor etc...) with the land-water inputs. Prices of non-land inputs are
+    determined at the national level. The elasticity of substitution between
+    non-land and land-water inputs under the augmented land CES nest is region
+    -specific.  !
+
+!   *********************************
+    Land-Water CES nest
+    *********************************   !
+!
+                                    QLANDWTRgl
+                                    /       \
+/     \
+                                  /-----------\        <--ces
+                                 /  EIRRIGgl   \
+                                /               \
+                            QLANDgl         QWATERgl
+                                          /        \
+                                         / -------  \  <--ces
+                                        /  ESUB_WKgl \
+                                       /              \
+                                   QWATSGgl        QWEQPTgl
+
+    This is the last nest under the crop production sector. Here, land-water
+    input for irrigated crop production is created by combining irrigation
+    inputs
+    with land. For land-water input in the rainfed sector, we do not
+    require additional inputs so changes in quantities and prices for this
+    input is directly linked to changes in rainfed areas and land rents.
+
+    Then, water is combined with other irrrigation inputs (like capital
+    equipments, labor, energy, etc.) to provide irrigation service for the
+    irrigable land.
+!
+
+!   ***********************
+    Land CET Nest
+    ***********************   !
+
+!         QLANDgl(g,"Rainfed")    QLANDgl(g,"Irrigated")
+                      |                   |
+                      |-------------------|
+                             ETRAN_LANDg
+                                |
+                              QLANDg
+
+    Finally, we introduce competition for land between rainfed and irrigated
+   sectors. Rainfed land can move into irrigated land depending on changes in
+    land rents. In this version, total land supply in a grid cell is fixed!
+
+
+
+!<  PRELIMINARIES
+    ====================================================================   >!
+!   Declaration of files & sets (see 'in' folder)                           !
+File  GRIDSETS  # model sets #;
+      GRIDDATA  # model data #;
+      GRIDPARM  # model parameters #;
+
+Set REG         # regions #
+                  read elements from file GRIDSETS header "REG";
+    CONS_COMM   # consumption commodities #
+                  read elements from file GRIDSETS header "AGGC";
+    FOOD_COMM   # food commodities: subset of CONS_COMM #
+                  read elements from file GRIDSETS header "AGGF";
+                  subset FOOD_COMM is subset of CONS_COMM;
+Set NFOOD_COMM  # nonfood commodity: subset of CONS_COMM #
+                  = CONS_COMM - FOOD_COMM;
+Set COEF        # regression estimates for ad-hoc demand fxn #
+                  read elements from file GRIDSETS header "COEF";
+Set GRID        # grid ids #
+                  read elements from file GRIDSETS header "GID";
+Set LTYPE       # land types: rainfed | irrigated #
+                  read elements from file GRIDSETS header "LTYP";
+
+! Declaration of mapping from grid to reg!
+Mapping GRID2REG from GRID to REG;
+                  read GRID2REG from file GRIDSETS header "MAP1";
+
+! State sets and mapping !
+Set STATE  # Political boundaries for policies, e.g. US states + RoW (48 + 1) #
+            read elements from file GRIDSETS header "STAT";
+Mapping GRID2STATE from GRID to STATE;
+            read GRID2STATE from file GRIDSETS header "MAP2";
+
+Set SUBREG   # subregional market#
+            read elements from file GRIDSETS header "SMKT";
+Mapping GRID2SREG from GRID to SUBREG;
+            read GRID2SREG from file GRIDSETS header "MAP3";
+Mapping SREG2REG from SUBREG to REG;
+            read SREG2REG from file GRIDSETS header "MAP4";
+
+! Subset for CA only !
+Set CA_GRID = (all, g, GRID: GRID2STATE(g) = "CA");
+Set NCA_GRID = (all, g, GRID: GRID2STATE(g) <> "CA");
+Subset CA_GRID  is subset of GRID;
+Subset NCA_GRID  is subset of GRID;
+
+! Subset for Farm resource regions only !
+Set HL_GRID = (all, g, GRID: GRID2SREG(g) = "Heartland");
+Subset HL_GRID  is subset of GRID;
+Set NC_GRID = (all, g, GRID: GRID2SREG(g) = "NorthCrescen");
+Subset NC_GRID  is subset of GRID;
+Set NG_GRID = (all, g, GRID: GRID2SREG(g) = "NorthGreatPl");
+Subset NG_GRID  is subset of GRID;
+Set PG_GRID = (all, g, GRID: GRID2SREG(g) = "PrairieGatew");
+Subset PG_GRID  is subset of GRID;
+Set EU_GRID = (all, g, GRID: GRID2SREG(g) = "EastUplands");
+Subset EU_GRID  is subset of GRID;
+Set SS_GRID = (all, g, GRID: GRID2SREG(g) = "SouthSeabr");
+Subset SS_GRID  is subset of GRID;
+Set FR_GRID = (all, g, GRID: GRID2SREG(g) = "FruitfulRim");
+Subset FR_GRID  is subset of GRID;
+Set BR_GRID = (all, g, GRID: GRID2SREG(g) = "BasinaRange");
+Subset BR_GRID  is subset of GRID;
+Set MP_GRID = (all, g, GRID: GRID2SREG(g) = "MississippiP");
+Subset MP_GRID  is subset of GRID;
+
+Set NFR_GRID = (all, g, GRID: GRID2SREG(g) <> "FruitfulRim");
+Subset NFR_GRID  is subset of GRID;
+
+! Subset for US / nonUS grids !
+Set US_GRID = (all, g, GRID: GRID2REG(g) = "US");
+Subset US_GRID  is subset of GRID;
+
+Set ROW_GRID = (all, g, GRID: GRID2REG(g) <> "US");
+Subset ROW_GRID  is subset of GRID;
+
+Coefficient (parameter) (all,l,LTYPE) ISIRRI(l) # dummy for Irrigated #;
+    Formula (initial)ISIRRI("Irrigated") = 1; (initial)ISIRRI("Rainfed") = 0;
+
+
+!   **********************************
+    Policy levers in Crop CES nest
+    **********************************   !
+!   Nitrogen input levers                                                 !
+    Variable (all,S,STATE)                                   t_PNITROs(s)
+    # Ad valorem tax on Nitrogen by state #;
+    Variable (all,S,STATE)(all,l,LTYPE)                      t_PNITROsl(s,l)
+    # Ad valorem tax on Nitrogen by state & ltype #;
+    Variable (all,g,GRID)(all,l,LTYPE)                       t_PNITROgl(g,l)
+    # Ad valorem tax on Nitrogen by grid & ltype #;
+    Variable (all,g,GRID)(all,l,LTYPE)                       s_PNITROgl(g,l)
+    # Slack to control nitrogen market by grid & ltype #;
+!   Crop output levers                                                 !
+    Variable (all,g,GRID)(all,l,LTYPE)                       t_PCROPgl(g,l)
+    # Tax/subsidy on crop output by grid & ltype  #;
+
+!   ****************************************
+    Technical variables in Crop CES nest
+    ****************************************   !
+! technical change by grid cell and land type !
+Variable   (all,g,GRID)(all,l,LTYPE)                p_AOCROPgl(g,l)
+    # input-neutral eff. index in Crop prod. by grid & ltype #;
+
+Variable   (all,g,GRID)(all,l,LTYPE)                p_AFNITROgl(g,l)
+    # nitrogen eff. index in Crop prod. by grid & ltype #;
+
+Variable  (all,g,GRID)(all,l,LTYPE)                 p_AFNLANDgl(g,l)
+    # NonLand eff. index in crop prod. by grid & ltype #;
+
+Variable  (all,g,GRID)(all,l,LTYPE)                 p_AFLANDgl(g,l)
+    # land eff. index in crop prod. by grid & ltype #;
+
+Variable  (all,g,GRID)(all,l,LTYPE)                 p_AFWATERgl(g,l)
+    # aggregate irrigation eff. index in crop prod. by grid & ltype #;
+
+Variable  (all,g,GRID)(all,l,LTYPE)                 p_AFWATSGgl(g,l)
+    # water eff. index in crop prod. by grid & ltype #;
+
+Variable  (all,g,GRID)(all,l,LTYPE)                 p_AFWEQPTgl(g,l)
+    # water equipment eff. index in crop prod. by grid & ltype #;
+
+
+! technical change by grid cell  !
+Variable   (all,g,GRID)               p_AOCROPg(g)
+    # input-neutral eff. index in Crop prod. by grid  #;
+
+Variable   (all,g,GRID)              p_AFNITROg(g)
+    # nitrogen eff. index in Crop prod. by grid  #;
+
+Variable  (all,g,GRID)                p_AFNLANDg(g)
+    # NonLand eff. index in crop prod. by grid  #;
+
+Variable  (all,g,GRID)                p_AFLANDg(g)
+    # land eff. index in crop prod. by grid  #;
+
+Variable  (all,g,GRID)                p_AFWATERg(g)
+    # aggregate irrigation eff. index in crop prod. by grid #;
+
+Variable  (all,g,GRID)                p_AFWATSGg(g)
+    # water eff. index in crop prod. by grid  #;
+
+Variable  (all,g,GRID)                 p_AFWEQPTg(g)
+    # water equipment eff. index in crop prod. by grid  #;
+
+! technical change by reg and land type !
+Variable   (all,r,REG)(all,l,LTYPE)                p_AOCROPrl(r,l)
+    # input-neutral eff. index in Crop prod. by reg & ltype #;
+
+Variable   (all,r,REG)(all,l,LTYPE)                p_AFNITROrl(r,l)
+    # nitrogen eff. index in Crop prod. by reg & ltype #;
+
+Variable  (all,r,REG)(all,l,LTYPE)                 p_AFNLANDrl(r,l)
+    # NonLand eff. index in crop prod. by reg & ltype #;
+
+Variable  (all,r,REG)(all,l,LTYPE)                 p_AFLANDrl(r,l)
+    # land eff. index in crop prod. by reg & ltype #;
+
+Variable  (all,r,REG)(all,l,LTYPE)                 p_AFWATERrl(r,l)
+    # aggregate irrigation eff. index in crop prod. by reg & ltype #;
+
+Variable  (all,r,REG)(all,l,LTYPE)                 p_AFWATSGrl(r,l)
+    # water eff. index in crop prod. by reg & ltype #;
+
+Variable  (all,r,REG)(all,l,LTYPE)                 p_AFWEQPTrl(r,l)
+    # water equipment eff. index in crop prod. by reg & ltype #;
+
+! technical change by reg  !
+Variable   (all,r,REG)               p_AOCROPr(r)
+    # input-neutral eff. index in Crop prod. by reg  #;
+
+Variable   (all,r,REG)              p_AFNITROr(r)
+    # nitrogen eff. index in Crop prod. by reg  #;
+
+Variable  (all,r,REG)                p_AFNLANDr(r)
+    # NonLand eff. index in crop prod. by reg  #;
+
+Variable  (all,r,REG)                p_AFLANDr(r)
+    # land eff. index in crop prod. by reg  #;
+
+Variable  (all,r,REG)                p_AFWATERr(r)
+    # aggregate irrigation eff. index in crop prod. by reg #;
+
+Variable  (all,r,REG)                p_AFWATSGr(r)
+    # water eff. index in crop prod. by reg  #;
+
+Variable  (all,r,REG)                 p_AFWEQPTr(r)
+    # water equipment eff. index in crop prod. by reg  #;
+
+
+
+! Final technical change by grid cell and land type !
+Variable   (all,g,GRID)(all,l,LTYPE)                p_AOCROP(g,l)
+    # input-neutral eff. index in Crop prod. by grid & ltype #;
+
+Variable   (all,g,GRID)(all,l,LTYPE)                p_AFNITRO(g,l)
+    # nitrogen eff. index in Crop prod. by grid & ltype #;
+
+Variable  (all,g,GRID)(all,l,LTYPE)                 p_AFNLAND(g,l)
+    # NonLand eff. index in crop prod. by grid & ltype #;
+
+Variable  (all,g,GRID)(all,l,LTYPE)                 p_AFLAND(g,l)
+    # land eff. index in crop prod. by grid & ltype #;
+
+Variable  (all,g,GRID)(all,l,LTYPE)                 p_AFWATER(g,l)
+    # aggregate irrigation eff. index in crop prod. by grid & ltype #;
+
+Variable  (all,g,GRID)(all,l,LTYPE)                 p_AFWATSG(g,l)
+    # water eff. index in crop prod. by grid & ltype #;
+
+Variable  (all,g,GRID)(all,l,LTYPE)                 p_AFWEQPT(g,l)
+    # water equipment eff. index in crop prod. by grid & ltype #;
+
+! labor related !
+Variable  (all,r,REG) p_AFLABORr(r)
+    # labor eff. index in crop prod. by reg  #;
+Variable  (all,g,GRID) p_AFLABORg(g)
+    # labor eff. index in crop prod. by grid  #;
+Variable  (all,r,REG)(all,l,LTYPE) p_AFLABORrl(r,l)
+    # labor eff. index in crop prod. by reg & ltype #;
+Variable  (all,g,GRID)(all,l,LTYPE) p_AFLABORgl(g,l)
+    # labor eff. index in crop prod. by grid & ltype #;
+Variable  (all,g,GRID)(all,l,LTYPE) p_AFLABOR(g,l)
+    # labor eff. index in crop prod. by grid & ltype #;
+
+Equation E_AFLABOR (all,g,GRID)(all,l,LTYPE)
+   p_AFLABOR(g,l)  = p_AFLABORrl(GRID2REG(g),l) +
+                    p_AFLABORr(GRID2REG(g)) +
+                    p_AFLABORgl(g,l) +
+                    p_AFLABORg(g);
+
+! Capital related !
+Variable  (all,g,GRID)(all,l,LTYPE) p_AFCAP(g,l)
+    # Capital eff. index in crop prod. by grid & ltype #;
+
+!   Equation linking regional and grid specific tech change parameters      !
+
+Equation E_AOCROP (all,g,GRID)(all,l,LTYPE)
+    p_AOCROP(g,l) = p_AOCROPrl(GRID2REG(g),l) +
+                    p_AOCROPr(GRID2REG(g)) +
+                    p_AOCROPgl(g,l) +
+                    p_AOCROPg(g);
+
+Equation E_AFNITRO (all,g,GRID)(all,l,LTYPE)
+   p_AFNITRO(g,l) = p_AFNITROrl(GRID2REG(g),l) +
+                    p_AFNITROr(GRID2REG(g)) +
+                    p_AFNITROgl(g,l) +
+                    p_AFNITROg(g);
+
+Equation E_AFNLAND (all,g,GRID)(all,l,LTYPE)
+   p_AFNLAND(g,l) = p_AFNLANDrl(GRID2REG(g),l) +
+                    p_AFNLANDr(GRID2REG(g)) +
+                    p_AFNLANDgl(g,l) +
+                    p_AFNLANDg(g);
+
+Equation E_AFLAND (all,g,GRID)(all,l,LTYPE)
+   p_AFLAND(g,l)  = p_AFLANDrl(GRID2REG(g),l) +
+                    p_AFLANDr(GRID2REG(g)) +
+                    p_AFLANDgl(g,l) +
+                    p_AFLANDg(g);
+
+Equation E_AFWATER (all,g,GRID)(all,l,LTYPE)
+   p_AFWATER(g,l) = p_AFWATERrl(GRID2REG(g),l) +
+                    p_AFWATERr(GRID2REG(g)) +
+                    p_AFWATERgl(g,l) +
+                    p_AFWATERg(g);
+
+!Equation E_AFWATSG (all,g,GRID)(all,l,LTYPE)
+   p_AFWATSG(g,l) = p_AFWATSGrl(GRID2REG(g),l) +
+                    p_AFWATSGr(GRID2REG(g)) +
+                    p_AFWATSGgl(g,l) +
+                    p_AFWATSGg(g);
+
+Equation E_AFWEQPT (all,g,GRID)(all,l,LTYPE)
+   p_AFWEQPT(g,l) = p_AFWEQPTrl(GRID2REG(g),l) +
+                    p_AFWEQPTr(GRID2REG(g)) +
+                    p_AFWEQPTgl(g,l) +
+                    p_AFWEQPTg(g);!
+
+
+!   ******************************
+    Control/slack variables
+    ******************************   !
+Variable (all,g,GRID)                                    s_QLANDg(g)
+    # Slack to control cropland by grid (in 1000 ha) #;
+
+Variable (all,g,GRID)                                    s_QWATERg(g)
+    # Slack to control water use by grid #;
+
+Variable (all,g,GRID)                                    s_QWEQPTg(g)
+    # Slack to control water eqpt by grid #;
+
+Variable (all,r,REG)                                     s_QLABORr(r)
+    # Slack to control labor by region #;
+
+Variable (all,r,REG)                                     s_QCAPr(r)
+    # Slack to control capital by region #;
+
+Variable (all,r,REG)                                     s_QNITROr(r)
+    # Slack to control nitrogen fertilizer by region #;
+
+
+
+!<  PRODUCTION SYSTEM
+    ====================================================================   >!
+
+! define main inputs and assign values!
+! QCET !
+Variable (levels)
+ (all,g,GRID)(all,l,LTYPE) QLANDgl(g,l)
+    # cropland area by g & l (1000 HA) #;
+
+Coefficient
+ (all,g,GRID)(all,l,LTYPE) VLANDgl(g,l)
+    # Val land      by g & l (1000 USD) #;
+ (all,g,GRID)(all,l,LTYPE) VNITROgl(g,l)
+    # Val nitr frt  by g & l (1000 USD) #;
+ (all,g,GRID)(all,l,LTYPE) VWATSGgl(g,l)
+    # Val water    by g & l (1000 USD) #;
+ (all,g,GRID)(all,l,LTYPE) VWEQPTgl(g,l)
+    # Val wat eqpt  by g & l (1000 USD) #;
+ (all,g,GRID)(all,l,LTYPE) VNLANDgl(g,l)
+    # Val oth input by g & l (1000 USD) #;
+(all,g,GRID)(all,l,LTYPE) VWATSRFgl(g,l)
+    # Val surface water by g & l (1000 USD) #;
+(all,g,GRID)(all,l,LTYPE) VWATGRDgl(g,l)
+    # Val groundwater by g & l (1000 USD) #;
+
+Read
+ VLANDgl   from file GRIDDATA header "VLND";
+! QCET !
+ QLANDgl   from file GRIDDATA header "QLND";
+ VNITROgl  from file GRIDDATA header "VNIT";
+ VWEQPTgl  from file GRIDDATA header "VWOR";
+ VNLANDgl  from file GRIDDATA header "VNLD";
+ VWATSRFgl from file GRIDDATA header "VSRF";
+ VWATGRDgl from file GRIDDATA header "VGRD";
+
+Coefficient
+(all,g,GRID)(all,l,LTYPE) VCROPgl(g,l)
+    # Val crop output   by g&l (1000 USD) #;
+(all,g,GRID)(all,l,LTYPE) VWATERgl(g,l)
+    # Val irrigation    by g&l (1000 USD) #;
+(all,g,GRID)(all,l,LTYPE) VLNDWTRgl(g,l)
+    # Val land+irrig    by g&l (1000 USD) #;
+(all,g,GRID)(all,l,LTYPE) VAUGLANDgl(g,l)
+    # Val oth+lnd+irrig by g&l (1000 USD) #;
+(all,g,GRID)              VLANDg(g)
+    # Val land input    by g   (1000 USD) #;
+! QCET !
+(all,g,GRID)              QLANDg(g)
+    # Cropland area by g   (1000 HA) #;
+
+Formula
+(all,g,GRID)(all,l,LTYPE) VWATSGgl(g,l)  = VWATSRFgl(g,l) + VWATGRDgl(g,l);
+(all,g,GRID)(all,l,LTYPE) VWATERgl(g,l)  = VWATSGgl(g,l) + VWEQPTgl(g,l);
+(all,g,GRID)(all,l,LTYPE) VLNDWTRgl(g,l) = VWATERgl(g,l) + VLANDgl(g,l) ;
+(all,g,GRID)(all,l,LTYPE) VAUGLANDgl(g,l)= VNLANDgl(g,l) + VLNDWTRgl(g,l) ;
+(all,g,GRID)(all,l,LTYPE) VCROPgl(g,l)   = VNITROgl(g,l) + VAUGLANDgl(g,l) ;
+(all,g,GRID)              VLANDg(g)      = sum{j, LTYPE, VLANDgl(g,j)} ;
+
+! define share parameters and assign values!
+Coefficient
+! shr: cost shares!
+(all,g,GRID)(all,l,LTYPE) SHR_LANDgl(g,l)
+    # shr land  in tot cost by g&l #;
+(all,g,GRID)(all,l,LTYPE) SHR_NITROgl(g,l)
+    # shr nitr  in tot cost by g&l #;
+(all,g,GRID)(all,l,LTYPE) SHR_NLANDgl(g,l)
+    # shr other in tot cost by g&l #;
+(all,g,GRID)(all,l,LTYPE) SHR_WATSGgl(g,l)
+    # shr water S+G   in tot cost by g&l #;
+(all,g,GRID)(all,l,LTYPE) SHR_WEQPTgl(g,l)
+    # shr water equipment in tot cost by g&l #;
+
+!v23p7!
+(all,g,GRID)(all,l,LTYPE) SHR_WATERgl(g,l)
+    # shr water in tot cost by g&l #;
+
+
+(all,g,GRID)(all,l,LTYPE) SHR_OinAUGgl(g,l)
+    # shr oth   in aug. land by g&l#;
+(all,g,GRID)(all,l,LTYPE) SHR_LinAUGgl(g,l)
+    # shr land  in aug. land by g&l#;
+(all,g,GRID)(all,l,LTYPE) SHR_WinAUGgl(g,l)
+    # shr water in aug. land by g&l#;
+
+(all,g,GRID)(all,l,LTYPE) SHR_LinLWgl(g,l)
+    # shr land  in land+wat+eqpt by g&l#;
+(all,g,GRID)(all,l,LTYPE) SHR_WinLWgl(g,l)
+    # shr water in land+wat+eqpt by g&l#;
+
+(all,g,GRID)(all,l,LTYPE) SHR_WWinWgl(g,l)
+    # shr wat S+G in wat+eqpt by g&l#;
+(all,g,GRID)(all,l,LTYPE) SHR_WKinWgl(g,l)
+    # shr Weqpt in wat+eqpt by g&l#;
+
+! QCET !
+! shr: quantity shares!
+Coefficient
+(all,g,GRID)(all,l,LTYPE) SHR_QLANDgl(g,l)
+# quantity shr of each land type in CET by g&l#;
+
+! shr: revenue shares!
+(all,g,GRID)(all,l,LTYPE) SHR_VLANDgl(g,l)
+# shr each land type in CET by g&l#;
+
+Zerodivide default 0.20;
+Formula
+ (all,g,GRID)(all,l,LTYPE) SHR_LANDgl(g,l)
+= VLANDgl(g,l)  / VCROPgl(g,l);
+ (all,g,GRID)(all,l,LTYPE) SHR_NITROgl(g,l)
+= VNITROgl(g,l) / VCROPgl(g,l);
+ (all,g,GRID)(all,l,LTYPE) SHR_NLANDgl(g,l)
+= VNLANDgl(g,l) / VCROPgl(g,l);
+ (all,g,GRID)(all,l,LTYPE) SHR_WATSGgl(g,l)
+= VWATSGgl(g,l) / VCROPgl(g,l);
+ (all,g,GRID)(all,l,LTYPE) SHR_WEQPTgl(g,l)
+= VWEQPTgl(g,l) / VCROPgl(g,l);
+
+ (all,g,GRID)(all,l,LTYPE) SHR_WATERgl(g,l)
+= VWATERgl(g,l) / VCROPgl(g,l);
+
+
+Zerodivide default 0.333333;
+Formula
+ (all,g,GRID)(all,l,LTYPE) SHR_OinAUGgl(g,l)
+= VNLANDgl(g,l) / VAUGLANDgl(g,l);
+ (all,g,GRID)(all,l,LTYPE) SHR_LinAUGgl(g,l)
+= VLANDgl(g,l)  / VAUGLANDgl(g,l);
+ (all,g,GRID)(all,l,LTYPE) SHR_WinAUGgl(g,l)
+= VWATERgl(g,l) / VAUGLANDgl(g,l);
+
+Zerodivide default 0.50;
+Formula
+ (all,g,GRID)(all,l,LTYPE) SHR_LinLWgl(g,l)
+ = VLANDgl(g,l)  / VLNDWTRgl(g,l);
+ (all,g,GRID)(all,l,LTYPE) SHR_WinLWgl(g,l)
+= VWATERgl(g,l) / VLNDWTRgl(g,l) ;
+
+Zerodivide off;
+
+Zerodivide default 0.5;
+Formula
+ (all,g,GRID)(all,l,LTYPE) SHR_WWinWgl(g,l)
+= VWATSGgl(g,l) / VWATERgl(g,l);
+ (all,g,GRID)(all,l,LTYPE) SHR_WKinWgl(g,l)
+= VWEQPTgl(g,l) / VWATERgl(g,l);
+ (all,g,GRID)(all,l,LTYPE) SHR_VLANDgl(g,l)
+ = VLANDgl(g,l)  / VLANDg(g);
+! QCET !
+ (all,g,GRID) QLANDg(g)
+ = sum(l,LTYPE, QLANDgl(g,l));
+ (all,g,GRID)(all,l,LTYPE) SHR_QLANDgl(g,l)
+ = QLANDgl(g,l)  / QLANDg(g);
+Zerodivide off;
+
+Coefficient
+ (Parameter) (all,g,GRID)(all,l,LTYPE)  ECROPgl(g,l)
+ # Elas. of subs. in crop production by grid & ltype #;
+
+ (Parameter) (all,g,GRID)(all,l,LTYPE)  EIRRIGgl(g,l)
+ # Elas. of subs. between land & water by grid #;
+
+ (Parameter) (all,g,GRID)(all,l,LTYPE)  EAUGLANDgl(g,l)
+ # Elas. of subs. in aug. land. CES nest by grid & ltype #;
+
+ (Parameter) (all,g,GRID)(all,l,LTYPE)  ESUB_WKgl(g,l)
+ # Elas. of subs. in wat+eqpt CES nest by grid & ltype #;
+
+ (Parameter) (all,g,GRID)(all,l,LTYPE)  EWATSGgl(g,l)
+ # supply elas. of water by grid & ltype#;
+
+ (Parameter) (all,g,GRID)               ETRAN_LANDg(g)
+ # elas. of trans. between rainfed land & water by reg #;
+
+ (Parameter) (all,g,GRID)               ELANDg(g)
+ # supply elas. of land #;
+
+ (Parameter) (all,r,REG)                ENITROr(r)
+ # supply elas. of nitrogen  by reg #;
+
+
+ (Parameter) (all,r,REG)                EWATKLr(r)
+ # supply elas. of irrig eqpt  by reg #;
+
+
+Read
+ ECROPgl    from file GRIDPARM header "ECRP";
+ EIRRIGgl   from file GRIDPARM header "EIRR";
+ EAUGLANDgl  from file GRIDPARM header "EAUG";
+ ESUB_WKgl   from file GRIDPARM header "EWAT";
+ ETRAN_LANDg from file GRIDPARM header "ETRN";
+
+ EWATSGgl   from file GRIDPARM header "EWTR";
+ ELANDg     from file GRIDPARM header "ELND";
+ ENITROr    from file GRIDPARM header "ENTR";
+ EWATKLr    from file GRIDPARM header "EWKL";
+
+
+Variable
+ (levels)(all,g,GRID)(all,l,LTYPE) PCROPgl(g,l)  # price of crops by g&l #;
+ (levels)(all,g,GRID)(all,l,LTYPE) QCROPgl(g,l)  # crop output by g&l    #;
+(levels)(all,g,GRID)(all,l,LTYPE) QWATSRFgl(g,l)
+# vol index surface water by g & l #;
+(levels)(all,g,GRID)(all,l,LTYPE) QWATGRDgl(g,l)
+# vol index groundwater by g & l #;
+ (levels)(all,g,GRID)(all,l,LTYPE)  QNITROgl(g,l)
+ # nitrogen use by g&l   #;
+ (all,g,GRID)(all,l,LTYPE)  p_QWATSGgl(g,l) # water use by g&l      #;
+ (all,g,GRID)(all,l,LTYPE)  p_PLANDgl(g,l)
+ # price of cropland by g&l     #;
+ (all,g,GRID)(all,l,LTYPE)  p_PNITROgl(g,l)
+ # price of nitrogen use by g&l #;
+ (all,g,GRID)(all,l,LTYPE)  p_PWATSGgl(g,l)
+ # price of water use by g&l    #;
+ (all,g,GRID)(all,l,LTYPE)  p_QNLANDgl(g,l)
+ # other input by g&l           #;
+ (all,g,GRID)(all,l,LTYPE)  p_PNLANDgl(g,l)
+ # price of other input by g&l  #;
+ (all,g,GRID)(all,l,LTYPE)  p_QWEQPTgl(g,l)
+ # irrig eqpt by g&l            #;
+ (all,g,GRID)(all,l,LTYPE)  p_PWEQPTgl(g,l)
+ # price of irrig eqpt by g&l   #;
+
+ (all,g,GRID)(all,l,LTYPE)  p_PAUGLANDgl(g,l)
+ # price of aug. land by g&l     #;
+ (all,g,GRID)(all,l,LTYPE)  p_QAUGLANDgl(g,l)
+ # quantity of aug. land by g&l  #;
+ (all,g,GRID)(all,l,LTYPE)  p_PLANDWTRgl(g,l)
+ # price of land+irrig by g&l    #;
+ (all,g,GRID)(all,l,LTYPE)  p_QLANDWTRgl(g,l)
+ # quantity of land+irrig by g&l #;
+ (all,g,GRID)(all,l,LTYPE)  p_PWATERgl(g,l)
+ # price of water+eqpt by g&l    #;
+ (all,g,GRID)(all,l,LTYPE)  p_QWATERgl(g,l)
+ # quantity of water+eqpt by g&l #;
+ (all,g,GRID)               p_PLANDg(g)
+ # price of land by grid         #;
+! QCET !
+ (all,g,GRID)               p_PLANDCOMPg(g)
+ # composite price of cropland by g     #;
+ (all,g,GRID)               p_QLANDg(g)
+ # quantity of land by grid      #;
+
+
+Read
+ QCROPgl   from file GRIDDATA header "QCRP";
+ QWATSRFgl  from file GRIDDATA header "QSRF";
+ QWATGRDgl  from file GRIDDATA header "QGRD";
+ QNITROgl from file GRIDDATA header "QNIT";
+
+Update
+ (all,g,GRID)(all,l,LTYPE) VLANDgl(g,l)  = p_PLANDgl(g,l) *p_QLANDgl(g,l);
+ (all,g,GRID)(all,l,LTYPE) VNITROgl(g,l) = p_PNITROgl(g,l)*p_QNITROgl(g,l);
+ (all,g,GRID)(all,l,LTYPE) VNLANDgl(g,l) = p_PNLANDgl(g,l)*p_QNLANDgl(g,l);
+ (all,g,GRID)(all,l,LTYPE) VWEQPTgl(g,l) = p_PWEQPTgl(g,l)*p_QWEQPTgl(g,l);
+
+Coefficient
+! shr: vol shares!
+ (all,g,GRID)(all,l,LTYPE) SHR_SinSGgl(g,l)
+    # shr srf  in tot water by g&l #;
+ (all,g,GRID)(all,l,LTYPE) SHR_GinSGgl(g,l)
+    # shr grd  in tot water by g&l #;
+
+Zerodivide default 0.50;
+Formula
+ (all,g,GRID)(all,l,LTYPE) SHR_SinSGgl(g,l)
+= VWATSRFgl(g,l)  / [VWATSRFgl(g,l)+VWATGRDgl(g,l)];
+ (all,g,GRID)(all,l,LTYPE) SHR_GinSGgl(g,l)
+= VWATGRDgl(g,l)  / [VWATSRFgl(g,l)+VWATGRDgl(g,l)];
+Zerodivide off;
+
+
+Coefficient
+ (Parameter) (all,g,GRID)(all,l,LTYPE)  ETA_WATSRFg(g,l)
+ # supply elasticity of surface water #;
+ (Parameter) (all,g,GRID)(all,l,LTYPE)  ETA_WATGRDg(g,l)
+ # supply elasticity of groundwater #;
+ (Parameter) (all,g,GRID)(all,l,LTYPE)  ESUB_SGg(g,l)
+ # substitution elasticity between groundwater and surface water #;
+
+Read
+ ETA_WATSRFg   from file GRIDPARM header "ETAS";
+ ETA_WATGRDg   from file GRIDPARM header "ETAG";
+ ESUB_SGg      from file GRIDPARM header "ESW";
+
+Variable
+ (all,g,GRID)(all,l,LTYPE) p_PWATSRFgl(g,l)  # price of surface water by g&l #;
+ (all,g,GRID)(all,l,LTYPE) p_PWATGRDgl(g,l)  # price of groundwater by g&l  #;
+(all,g,GRID)(all,l,LTYPE) s_QWATSRFgl(g,l)
+# slack for surface water withdrawal by g&l #;
+(all,g,GRID)(all,l,LTYPE) s_QWATGRDgl(g,l)
+# slack for groundwater withdrawal by g&l  #;
+
+Update
+ (all,g,GRID)(all,l,LTYPE) VWATSRFgl(g,l) = p_PWATSRFgl(g,l)*p_QWATSRFgl(g,l);
+ (all,g,GRID)(all,l,LTYPE) VWATGRDgl(g,l) = p_PWATGRDgl(g,l)*p_QWATGRDgl(g,l);
+
+Equation E_PWATSRFgl (all,g,GRID)(all,l,LTYPE)
+    p_QWATSRFgl(g,l)  = ETA_WATSRFg(g,l) * p_PWATSRFgl(g,l) + s_QWATSRFgl(g,l);
+
+Equation E_PWATGRDgl (all,g,GRID)(all,l,LTYPE)
+    p_QWATGRDgl(g,l)  = ETA_WATGRDg(g,l) * p_PWATGRDgl(g,l) + s_QWATGRDgl(g,l);
+
+Equation E_QWATSRFgl (all,g,GRID)(all,l,LTYPE)
+p_QWATSRFgl(g,l) = p_QWATSGgl(g,l) ;
+
+Equation E_QWATGRDgl (all,g,GRID)(all,l,LTYPE)
+p_QWATGRDgl(g,l) = p_QWATSGgl(g,l) ;
+
+!price index for srf + grd water!
+Equation E_PWATSGgl  (all,g,GRID)(all,l,LTYPE)
+    p_PWATSGgl(g,l)
+     = SHR_SinSGgl(g,l) * [p_PWATSRFgl(g,l) ]
+     + SHR_GinSGgl(g,l) * [p_PWATGRDgl(g,l) ];
+
+
+![[!
+!supply of water!
+E_PWATSGgl    (all,g,GRID)(all,l,LTYPE)
+p_QWATSGgl(g,l)
+     = EWATSGgl(g,l)  * p_PWATSGgl(g,l) + s_QWATERg(g);
+!]]!
+
+! About the non-land nest 
+This nest contains two inputs: labor (LABOR) and other capital (CAP). 
+Values of labor and capital are calculated with the value of non-land (VNLAND) 
+and the cost share of labor (shr_LABOR). The quantity of labor is measured 
+in 1000 hours.While we set the price of capital to be 1 so QCAP = VCAP.  
+
+Parameters of labor and captial supply elasticities and the elasticity of 
+substitution between labor and captial are obtained from Ray et al. (2023)
+!
+![[! Split NLAND nest --- start !]]!
+Coefficient 
+ (all,g,GRID)(all,l,LTYPE) shr_LABOR(g,l) 
+# share of labor in non-land nest at baseline #;
+ (all,g,GRID)(all,l,LTYPE) shr_LinLCgl(g,l) 
+# share of labor in non-land nest #;
+ (all,g,GRID)(all,l,LTYPE) shr_CinLCgl(g,l) 
+# share of capital in non-land nest #;
+ (all,g,GRID)(all,l,LTYPE) VLABORgl(g,l) 
+# Value of labor input #;
+ (all,g,GRID)(all,l,LTYPE) VCAPgl(g,l) 
+# Value of capital input #;
+
+Read
+ shr_LABOR   from file GRIDDATA header "XLAB";
+
+Coefficient
+(parameter) (all,g,GRID)(all,l,LTYPE) ESUB_LCgl(g,l) 
+# Elasticity of substitution between labor and capital #;
+(parameter) (all,r,REG) ELABORr(r)
+# Supply elasticity of labor #;
+(parameter) (all,r,REG) ECAPr(r)
+# Supply elasticity of capital #;
+
+Read
+ ESUB_LCgl  from file GRIDPARM header "ESLC";
+ ELABORr    from file GRIDPARM header "ELAB";
+ ECAPr      from file GRIDPARM header "ECAP";
+
+Variable
+(levels)(all,g,GRID)(all,l,LTYPE) QLABORgl(g,l)  
+# Labor in crop production (in 1000 hr) #;
+(levels)(all,g,GRID)(all,l,LTYPE) PLABORgl(g,l)  
+# Price of labor in crop production  #;
+(levels)(all,g,GRID)(all,l,LTYPE) QCAPgl(g,l)  
+# Capital in crop production #;
+(levels)(all,g,GRID)(all,l,LTYPE) PCAPgl(g,l)  
+# Price of capital in crop production #;
+
+Read
+ QLABORgl   from file GRIDDATA header "QLAB";
+
+Update
+ (all,g,GRID)(all,l,LTYPE) VLABORgl(g,l) = p_PLABORgl(g,l)*p_QLABORgl(g,l);
+ (all,g,GRID)(all,l,LTYPE) VCAPgl(g,l) = p_PCAPgl(g,l)*p_QCAPgl(g,l);
+
+Formula 
+(initial)(all,g,GRID)(all,l,LTYPE) VLABORgl(g,l) = shr_LABOR(g,l)*VNLANDgl(g,l);
+(initial)(all,g,GRID)(all,l,LTYPE) VCAPgl(g,l) = (1-shr_LABOR(g,l))*VNLANDgl(g,l);
+(initial)(all,g,GRID)(all,l,LTYPE) PLABORgl(g,l) = VLABORgl(g,l)/QLABORgl(g,l);
+(initial)(all,g,GRID)(all,l,LTYPE) PCAPgl(g,l) = 1;
+(initial)(all,g,GRID)(all,l,LTYPE) QCAPgl(g,l) = VCAPgl(g,l);
+
+Zerodivide default 0.50;
+Formula
+ (all,g,GRID)(all,l,LTYPE) SHR_LinLCgl(g,l)
+= VLABORgl(g,l)  / [VLABORgl(g,l)+VCAPgl(g,l)];
+ (all,g,GRID)(all,l,LTYPE) SHR_CinLCgl(g,l)
+= VCAPgl(g,l)  / [VLABORgl(g,l)+VCAPgl(g,l)];
+Zerodivide off;
+
+Equation
+! Demand for labor input!
+E_QLABORgl    (all,g,GRID)(all,l,LTYPE)
+p_QLABORgl(g,l)
+     = p_QNLANDgl(g,l)  - p_AFLABOR(g,l)
+- ESUB_LCgl(g,l) * [p_PLABORgl(g,l) - p_AFLABOR(g,l) - p_PNLANDgl(g,l) ] ;
+
+! Demand for capital input!
+E_QCAPgl    (all,g,GRID)(all,l,LTYPE)
+p_QCAPgl(g,l)
+     = p_QNLANDgl(g,l)  - p_AFCAP(g,l)
+- ESUB_LCgl(g,l) * [p_PCAPgl(g,l) - p_AFCAP(g,l) - p_PNLANDgl(g,l) ] ;
+
+! Zero - profit condition for non-land nest!
+E_PNLANDgl  (all,g,GRID)(all,l,LTYPE)
+p_PNLANDgl(g,l)
+     = SHR_LinLCgl(g,l) * [p_PLABORgl(g,l) - p_AFLABOR(g,l)]
+     + SHR_CinLCgl(g,l) * [p_PCAPgl(g,l) - p_AFCAP(g,l)];
+
+! Supply of labor - mobile at regional level !
+Variable
+(all,r,REG)          p_QLABORr(r)
+ # Quantity of labor  by reg  #;
+(all,r,REG)          p_PLABORr(r)
+ # Price of labor by reg #;
+
+Coefficient
+ (all,r,REG)        VLABORr(r)
+  # Value of labor input by reg (in 1000 USD) #;
+
+Formula
+ (all,r,REG)         VLABORr(r) =
+    sum(l, LTYPE, sum(g, GRID: GRID2REG(g) EQ r, VLABORgl(g,l)));
+
+Equation
+E_PLABORr (all,r,REG)
+ p_QLABORr(r) = ELABORr(r) * p_PLABORr(r) + s_QLABORr(r);
+
+E_PLABORgl    (all,g,GRID)(all,l,LTYPE)
+p_PLABORgl(g,l)
+    = p_PLABORr(GRID2REG(g)) ;
+
+E_QLABORr (ALL,r,REG)
+ VLABORr(r)*p_QLABORr(r) =
+    sum{g,GRID:GRID2REG(g)=r, sum{l,LTYPE, VLABORgl(g,l)*p_QLABORgl(g,l)}};
+
+! Supply of captial - mobile at regional level !
+Variable
+(all,r,REG)          p_QCAPr(r)
+ # Quantity of capital by reg  #;
+(all,r,REG)          p_PCAPr(r)
+ # Price of capital by reg #;
+
+Coefficient
+ (all,r,REG)        VCAPr(r)
+  # Value of capital input by reg (in 1000 USD) #;
+
+Formula
+ (all,r,REG)         VCAPr(r) =
+    sum(l, LTYPE, sum(g, GRID: GRID2REG(g) EQ r, VCAPgl(g,l)));
+
+Equation
+E_PCAPr (all,r,REG)
+ p_QCAPr(r) = ECAPr(r) * p_PCAPr(r) + s_QCAPr(r);
+
+E_PCAPgl    (all,g,GRID)(all,l,LTYPE)
+p_PCAPgl(g,l)
+    = p_PCAPr(GRID2REG(g)) ;
+
+E_QCAPr (ALL,r,REG)
+ VCAPr(r)*p_QCAPr(r) =
+    sum{g,GRID:GRID2REG(g)=r, sum{l,LTYPE, VCAPgl(g,l)*p_QCAPgl(g,l)}};
+
+![[! Split NLAND nest --- end !]]!
+
+Equation
+!supply of total cropland!
+E_QLANDg     (all,g,GRID)
+p_QLANDg(g)
+    = ELANDg(g) *  p_PLANDg(g) + s_QLANDg(g);
+
+! QCET !
+! compute change in composite land price index for QCET allocation !
+E_PLANDCOMPg      (all,g,GRID)
+p_PLANDCOMPg(g) =
+    sum(l,LTYPE, SHR_QLANDgl(g,l) * p_PLANDgl(g,l)) ;
+
+! QCET !
+!allocation of cropland to irrigated and rainfed!
+E_PLANDgl     (all,g,GRID)(all,l,LTYPE)
+p_QLANDgl(g,l)
+    = p_QLANDg(g)
+    - ETRAN_LANDg(g) * [p_PLANDgl(g,l) - p_PLANDCOMPg(g)];
+
+! QCET !
+! ensure that land revenue is fully exhausted !
+E_PLANDg      (all,g,GRID)
+p_PLANDg(g) + p_QLANDg(g) =
+    sum(l,LTYPE, SHR_VLANDgl(g,l) * [p_PLANDgl(g,l) + p_QLANDgl(g,l)]) ;
+
+!supply of irrigation equipments etc!
+E_PWEQPTgl    (all,g,GRID)(all,l,LTYPE)
+p_QWEQPTgl(g,l)
+     = EWATKLr(GRID2REG(g))  * p_PWEQPTgl(g,l) + s_QWEQPTg(g);
+
+!Demand for nitrogen fertilizer input !
+E_QNITROgl    (all,g,GRID)(all,l,LTYPE)
+p_QNITROgl(g,l) + p_AFNITRO(g,l)
+     = p_QCROPgl(g,l)  - p_AOCROP(g,l)
+     - ECROPgl(g,l)* [p_PNITROgl(g,l) - p_AFNITRO(g,l) -
+                      p_PCROPgl(g,l)  - p_AOCROP(g,l) ];
+
+!Demand for land input !
+E_QLANDgl     (all,g,GRID)(all,l,LTYPE)
+p_QLANDgl(g,l)
+     = p_QLANDWTRgl(g,l) - p_AFLAND(g,l)
+     - EIRRIGgl(g,l)   * [p_PLANDgl(g,l) - p_AFLAND(g,l) - p_PLANDWTRgl(g,l) ];
+
+!Demand for water (surface water + groundwater) input!
+E_QWATSGgl     (all,g,GRID)(all,l,LTYPE)
+p_QWATSGgl(g,l)
+   = p_QWATERgl(g,l) - ESUB_WKgl(g,l) * [p_PWATSGgl(g,l) - p_PWATERgl(g,l)];
+
+!Demand for irrigation equipments!
+E_QWEQPTgl     (all,g,GRID)(all,l,LTYPE)
+p_QWEQPTgl(g,l)
+    = p_QWATERgl(g,l) - ESUB_WKgl(g,l) * [p_PWEQPTgl(g,l)- p_PWATERgl(g,l)];
+
+!Demand for other inputs!
+E_QNLANDgl    (all,g,GRID)(all,l,LTYPE)
+p_QNLANDgl(g,l)
+     = p_QAUGLANDgl(g,l)  - p_AFNLAND(g,l)
+- EAUGLANDgl(g,l) * [p_PNLANDgl(g,l) - p_AFNLAND(g,l) - p_PAUGLANDgl(g,l) ] ;
+
+!Quantity index for oth+land+water+eqpt!
+E_QAUGLANDgl  (all,g,GRID)(all,l,LTYPE)
+p_QAUGLANDgl(g,l)
+     = p_QCROPgl(g,l)  - p_AOCROP(g,l)
+     - ECROPgl(g,l)* [p_PAUGLANDgl(g,l) - p_PCROPgl(g,l) - p_AOCROP(g,l)] ;
+
+!Quantity index for water+eqpt!
+E_QWATERgl  (all,g,GRID)(all,l,LTYPE)
+p_QWATERgl(g,l)
+     = ISIRRI(l) * p_QLANDWTRgl(g,l)
+     - ISIRRI(l) * p_AFWATER(g,l)
+- ISIRRI(l) * EIRRIGgl(g,l) * [p_PWATERgl(g,l) - p_AFWATER(g,l) -
+p_PLANDWTRgl(g,l) ] ;
+
+!Quantity index for land+water+eqpt!
+E_QLANDWTRgl  (all,g,GRID)(all,l,LTYPE)
+p_QLANDWTRgl(g,l)
+     = p_QAUGLANDgl(g,l)
+     - EAUGLANDgl(g,l) * [p_PLANDWTRgl(g,l) - p_PAUGLANDgl(g,l) ] ;
+
+!price index for irrigation wat+eqpt!
+E_PWATERgl  (all,g,GRID)(all,l,LTYPE)
+p_PWATERgl(g,l)
+     = SHR_WWinWgl(g,l) * [p_PWATSGgl(g,l) - p_AFWATSG(g,l)]
+     + SHR_WKinWgl(g,l) * [p_PWEQPTgl(g,l) - p_AFWEQPT(g,l)];
+
+!price index for land+water+eqpt!
+E_PLANDWTRgl  (all,g,GRID)(all,l,LTYPE)
+p_PLANDWTRgl(g,l)
+     = SHR_LinLWgl(g,l) * [p_PLANDgl(g,l)  - p_AFLAND(g,l)]
+     + SHR_WinLWgl(g,l) * [p_PWATERgl(g,l) - p_AFWATER(g,l)]  ;
+
+!price index for oth+land+water+eqpt!
+E_PAUGLANDgl  (all,g,GRID)(all,l,LTYPE)
+p_PAUGLANDgl(g,l)
+     = SHR_OinAUGgl(g,l) * [p_PNLANDgl(g,l)- p_AFNLAND(g,l)]
+     + SHR_LinAUGgl(g,l) * [p_PLANDgl(g,l) - p_AFLAND(g,l) ]
+     + SHR_WinAUGgl(g,l) * [p_PWATERgl(g,l)- p_AFWATER(g,l)] ;
+
+![[!
+
+!alternative form of zero profit condition!
+E_QCROPgl     (all,g,GRID)(all,l,LTYPE)
+P_QCROPgl(g,l)
+     = SHR_LANDgl(g,l)   * [p_QLANDgl(g,l) + p_AFLAND(g,l) ]
+     + SHR_NITROgl(g,l)  * [p_QNITROgl(g,l)+ p_AFNITRO(g,l)]
+     + SHR_NLANDgl(g,l)  * [p_QNLANDgl(g,l)+ p_AFNLAND(g,l)]
+     + SHR_WATSGgl(g,l)  * [p_QWATSGgl(g,l)+ p_AFWATSG(g,l) +p_AFWATER(g,l)]
+     + SHR_WEQPTgl(g,l)  * [p_QWEQPTgl(g,l)+ p_AFWEQPT(g,l) +p_AFWATER(g,l)]
+     + p_AOCROP(g,l);
+
+!]]!
+
+
+!
+*****************************************************************************
+                grids --> production regions --> global regions
+*****************************************************************************
+!
+![[! start, subregional Armington !]]!
+Variable
+ (levels)(all,r,REG) QCROPr(r) # Crop output by reg (in 1000 MT: Corn-eq.) #;
+ (levels)(all,r,REG) PCROPr(r) # Crop price by reg (in USD / MT)#;
+ (levels)(all,r,REG) VCROPr(r) # Value of crop output by reg (in 1000 USD) #;
+
+ (levels)(all,m,SUBREG) PCROPm(m) # Crop price by subregion (in USD / MT) #;
+(levels)(all,m,SUBREG) QCROPm(m)
+# Crop output by subreg (in 1000 MT: Corn-eq.) #;
+(levels)(all,m,SUBREG) VCROPm(m)
+# Value of crop output by subreg (in 1000 MT: Corn-eq.) #;
+
+Coefficient
+ (Parameter)(all,r,REG)    ESUBMKTr(r) # substitution elasticity across grids #;
+ (Parameter)(all,m,SUBREG) ESUBMKTm(m) # substitution elasticity across grids #;
+(all,g,GRID)(all,l,LTYPE) SHRCROPgl(g,l)
+# Revenue shr of each grid by grid & ltype #;
+ (all,m,SUBREG) SHRCROPm(m) # Revenue shr of each sub region #;
+
+Read
+ ESUBMKTm from file GRIDPARM header "ESMK";
+ ESUBMKTr from file GRIDPARM header "EMKT";
+
+Formula
+(initial)(all,m,SUBREG) VCROPm(m)= sum(l, LTYPE, sum(g, GRID: GRID2SREG(g) EQ
+m, VCROPgl(g,l)));
+(initial)(all,m,SUBREG) QCROPm(m)= sum(l, LTYPE, sum(g, GRID: GRID2SREG(g) EQ
+m, QCROPgl(g,l)));
+ (initial)(all,m,SUBREG) PCROPm(m) = VCROPm(m)/QCROPm(m);
+
+ (initial)(all,r,REG) VCROPr(r) = sum(m, SUBREG: SREG2REG(m) EQ r, VCROPm(m));
+ (initial)(all,r,REG) QCROPr(r) = sum(m, SUBREG: SREG2REG(m) EQ r, QCROPm(m));
+ (initial)(all,r,REG) PCROPr(r) = VCROPr(r)/QCROPr(r);
+
+ (initial)(all,g,GRID)(all,l,LTYPE) PCROPgl(g,l) = PCROPr(GRID2REG(g));
+
+ (all,g,GRID)(all,l,LTYPE) SHRCROPgl(g,l) = VCROPgl(g,l) / VCROPm(GRID2SREG(g));
+(all,m,SUBREG)      SHRCROPm(m)  = VCROPm(m)  / VCROPr(SREG2REG(m));
+
+
+EQUATION (LINEAR) E_QCROPr (ALL,r,REG)                    VCROPr(r)*p_PCROPr(r)
+    = SUM(m,SUBREG: SREG2REG(m) EQ r, VCROPm(m) * p_PCROPm(m)) ;
+
+EQUATION (LINEAR) E_QCROPm (ALL,m,SUBREG)        VCROPm(m) * p_PCROPm(m)
+= SUM(l,LTYPE, SUM(g,GRID: GRID2SREG(g) EQ m, VCROPgl(g,l) * p_PCROPgl(g,l))) ;
+
+EQUATION E_QCROPgl (all,g,GRID)(all,l,LTYPE)
+    p_QCROPgl(g,l) =
+      p_QCROPm(GRID2SREG(g)) -
+ESUBMKTm(GRID2SREG(g)) * [p_PCROPgl(g,l) - p_PCROPm(GRID2SREG(g)) -
+t_PCROPgl(g,l) ];
+
+EQUATION E_PCROPm_r (all,m,SUBREG)
+    p_QCROPm(m) =
+      p_QCROPr(SREG2REG(m)) -
+      ESUBMKTr(SREG2REG(m)) * [p_PCROPm(m) - p_PCROPr(SREG2REG(m))];
+
+EQUATION E_VCROPr (all,m,SUBREG)
+ p_VCROPm(m) = p_QCROPm(m) + p_PCROPm(m);
+
+EQUATION E_VCROPm (ALL,r,REG)
+ p_VCROPr(r) = p_QCROPr(r) + p_PCROPr(r);
+
+![[! corrected !]]!
+E_PCROPgl     (all,g,GRID)(all,l,LTYPE) 
+P_PCROPgl(g,l) + p_AOCROP(g,l)   
+     = SHR_LANDgl(g,l)   * [p_PLANDgl(g,l) - p_AFLAND(g,l)] 
+     + SHR_NITROgl(g,l)  * [p_PNITROgl(g,l)- p_AFNITRO(g,l)]  
+     + SHR_NLANDgl(g,l)  * [p_PNLANDgl(g,l)- p_AFNLAND(g,l)]  
+     + SHR_WATERgl(g,l)  * [p_PWATERgl(g,l) -p_AFWATER(g,l)] ;
+
+
+![[! End, subregional Armington !]]!
+
+!
+*****************************************************************************
+                  grids ------> global market regions
+*****************************************************************************
+!
+
+![[!
+! regional aggregates: crops, nitrogen , non-land !
+Variable
+(levels) (all,r,REG) QCROPr(r)
+# Crop output by reg (in 1000 MT: Corn-eq.) #;
+(levels) (all,r,REG) PCROPr(r)
+ # Crop price by reg (in USD / MT)#;
+(levels) (all,r,REG) VCROPr(r)
+ # Value of crop output by reg (in 1000 USD) #;
+
+Formula
+(initial)(all,r,REG) VCROPr(r) = sum(l, LTYPE, sum(g, GRID: GRID2REG(g) EQ r,
+VCROPgl(g,l)));
+
+(initial)(all,r,REG) QCROPr(r) = sum(l, LTYPE, sum(g, GRID: GRID2REG(g) EQ r,
+QCROPgl(g,l)));
+
+ (initial)(all,r,REG) PCROPr(r) = VCROPr(r)/QCROPr(r);
+
+ (initial)(all,g,GRID)(all,l,LTYPE) PCROPgl(g,l) = PCROPr(GRID2REG(g));
+
+! regional market / price for crops !
+Equation
+E_QCROPr (ALL,r,REG)
+VCROPr(r)*p_QCROPr(r) = sum{g,GRID:GRID2REG(g)=r, sum{l,LTYPE, VCROPgl(g,l)*
+p_QCROPgl(g,l)}};
+
+E_VCROPr (ALL,r,REG)
+ p_VCROPr(r) = p_QCROPr(r) + p_PCROPr(r);
+
+E_PCROPgl (all,g,GRID)(all,l,LTYPE)
+ p_PCROPgl(g,l) = p_PCROPr(GRID2REG(g))+ t_PCROPgl(g,l) ;
+!]]!
+
+
+!
+*****************************************************************************
+                 Spatial aggregation to global market regions
+*****************************************************************************
+!
+Variable
+(levels)(all,r,REG)          QNITROr(r)
+ # Nitrogen use by reg (in 1000 MT) #;
+(all,r,REG)          p_PNITROr(r)
+ # Price of nitrogen by reg (in USD/MT) #;
+
+Formula
+(initial)(all,r,REG) QNITROr(r) = 
+sum(l, LTYPE, sum(g, GRID: GRID2REG(g) EQ r, QNITROgl(g,l)));
+
+Coefficient
+ (all,r,REG)        VNITROr(r)
+  # Value of Nit. fert. by reg (in 1000 USD) #;
+
+Formula
+ (all,r,REG)         VNITROr(r) =
+    sum(l, LTYPE, sum(g, GRID: GRID2REG(g) EQ r, VNITROgl(g,l)));
+
+Equation
+! regional market / price for nitrogen fertilizer !
+E_PNITROgl    (all,g,GRID)(all,l,LTYPE)
+p_PNITROgl(g,l)
+    = p_PNITROr(GRID2REG(g)) + t_PNITROsl(GRID2STATE(g),l)
+    + t_PNITROgl(g,l) + t_PNITROs(GRID2STATE(g))
+    + s_PNITROgl(g,l);
+
+E_QNITROr (all,r,REG)
+ p_QNITROr(r) = ENITROr(r) * p_PNITROr(r)+ s_QNITROr(r);
+
+E_PNITROr (ALL,r,REG)
+ VNITROr(r)*p_QNITROr(r) =
+    sum{g,GRID:GRID2REG(g)=r, sum{l,LTYPE, VNITROgl(g,l)*p_QNITROgl(g,l)}};
+
+!
+*****************************************************************************
+                         Regional crop markets
+*****************************************************************************
+!
+!<  CROP QUANTITY, VALUE AND PRICE LINKAGES
+    ====================================================================   >!
+!         Sources of industrial demands for crops                           !
+Variable (levels) (all,r,REG)                               QCRPBIOF(r)
+    # Crop demand: Biofuel feedstock (in 1000 MT: Corn-eq.) #;
+    Read QCRPBIOF from file GRIDDATA header "QBIO";
+Variable (levels) (all,r,REG)                               QCRPFEED(r)
+    # Crop demand: Livestock feeds (in 1000 MT: Corn-eq.) #;
+    Read QCRPFEED from file GRIDDATA header "QFD";
+Variable (levels) (all,r,REG)                               QCRPFOOD(r)
+    # Crop demand: Proc. food inputs (in 1000 MT: Corn-eq.) #;
+    Read QCRPFOOD from file GRIDDATA header "QPR";
+
+Variable (all,r,REG)                                       p_QCRPBIOFr(r)
+    # Crop demand: Biofuel feedstock | Future Shock #;
+Variable  (all,r,REG)                                      s_QCRPBIOFr(r)
+    # Crop demand: Biofuel feedstock | Alternative Shock #;
+Equation E_QCRPBIOF
+# Equation separating biofuels shocks into future and alternative #
+    (all,r,REG)  p_QCRPBIOF(r) = p_QCRPBIOFr(r) + s_QCRPBIOFr(r);
+
+!         Commodity price, quantity, value variables                        !
+Variable (levels) (all,i,CONS_COMM)(all,r,REG)              QCONS(i,r)
+   # Comm. consumption (in 1000 USD, in 1000 MT: "Crops") #;
+   Read QCONS  from file GRIDDATA header "QCON";
+Variable (levels) (all,i,CONS_COMM)(all,r,REG)              VCONS(i,r)
+   # Value of comm. consumption (in 1000 USD) #;
+   Read VCONS  from file GRIDDATA header "VCON";
+Variable (levels) (all,i,CONS_COMM)(all,r,REG)              P(i,r)
+   # Commodity prices (in USD per unit) #;
+   Formula (initial) (all,i,CONS_COMM)(all,r,REG)           P(i,r)
+   = VCONS(i,r) / QCONS(i,r) ;
+Variable (levels)                                           PCROP
+    # Crop price (in USD / MT) #;
+    Formula (initial)                                       PCROP
+    = sum(r, REG, VCROPr(r)) / sum(r, REG, QCROPr(r));
+
+
+!<  CONSUMER DEMAND SYSTEM
+    ====================================================================   >!
+!   CONSUMER DEMAND DRIVERS, VARIABLES & ELASTICITIES
+    --------------------------------------------------------------------   >!
+!   Drivers of Commodity Demand
+    *************************************************************           !
+Variable (levels) (all,r,REG)                               INC_PC(r)
+    # Per capita income (in USD) #;
+    Read INC_PC from file GRIDDATA header "YPC";
+
+Variable (levels) (all,r,REG)                               POP(r)
+    # Population (in 1000 persons) #;
+    Read POP from file GRIDDATA header "POP";
+
+Variable (levels) (all,i,CONS_COMM)(all,r,REG)              QPC(i,r)
+    # Per cap. comm. cons. (in 1000 USD, in 1000 MT: "Crops") #;
+    Formula (initial) (all,i,CONS_COMM)(all,r,REG)          QPC(i,r)
+    = QCONS(i,r) / POP(r) ;
+
+!   Ad-Hoc Demand Elasticities
+    *************************************************************           !
+!   Parameters from regression of the demand elasticities   !
+Coefficient (parameter) (all,i,CONS_COMM) (all,k,COEF)      EIY(i,k)
+    # OLS estimates of income elas. & per capita incomes #;
+    Read EIY from file GRIDPARM header "EIY";
+Coefficient (parameter) (all,i,CONS_COMM) (all,k,COEF)      EIP(i,k)
+    # OLS estimates of own-price elas. & per capita incomes #;
+    Read EIP from file GRIDPARM header "EIP";
+
+Coefficient (all,i,CONS_COMM) (all,r,REG)                   adhocEINC(i,r)
+    # predicted income elasticities #;
+    Formula (all,i,CONS_COMM) (all,r,REG)                   adhocEINC(i,r)
+    = EIY(i,"INT") + EIY(i,"SLP") * loge(INC_PC(r));
+Coefficient (all,i,CONS_COMM) (all,r,REG)                   adhocEOP(i,r)
+    # predicted own-price elasticities #;
+    Formula (all,i,CONS_COMM) (all,r,REG)                   adhocEOP(i,r)
+    = EIP(i,"INT") + EIP(i,"SLP") * loge(INC_PC(r));
+
+!   Ad-Hoc demand elasticities used in model demand equations            !
+Coefficient (all,i,CONS_COMM) (all,r,REG)                   EINC(i,r)
+    # income elasticity of demand #;
+    Formula (all,i,CONS_COMM) (all,r,REG)                   EINC(i,r)
+    = adhocEINC(i,r);
+
+Coefficient (all,i,CONS_COMM)(all,r,REG)                    EOP(i,r)
+    # own-price elasticities of demand #;
+    Formula (all,i,CONS_COMM)(all,r,REG)                    EOP(i,r)
+    = adhocEOP(i,r);
+
+!<  CONSUMER DEMAND EQUATIONS
+    --------------------------------------------------------------------   >
+
+                     INC_PC
+                       /
+                - EOP / + EINC
+                     /
+POP  QPC
+             \     /
+              QCONS -------------------------------------------
+                |                      |                      |
+                |                      |                      |
+          QCONS("Crops")     QCONS("Livestock")     QCONS("Proc_Food")
+
+    In SIMPLE, drivers of demand include population and per capita incomes.
+    Income and price elasticities evolve with per capita income levels
+in order
+    to capture the effects of dietary upgrading (i.e. lower responsiveness
+    of food demand to changes in incomes and prices at higher income levels).
+
+    For crop commodities, quantities are measured in 1000 MT corn equivalent
+    while for other commodities, quantities are equivalent to values.      !
+
+!   Per Capita Consumption
+    **********************************************************************  !
+Equation E_QPC
+    # determines the endogenous price for all commodities #
+    (all,i,CONS_COMM) (all,r,REG)
+    p_QPC(i,r) =   EOP(i,r) * p_P(i,r) + EINC(i,r) * p_INC_PC(r);
+
+!   Regional Consumption
+    **********************************************************************  !
+Equation E_QCONS
+    # determines the changes in quantities of regional consumption #
+    (all,i,CONS_COMM)(all,r,REG)
+    p_QCONS(i,r) = p_QPC(i,r) + p_POP(r) ;
+
+Equation E_VCONS
+    # determines the changes in value of regional consumption  #
+    (all,i,CONS_COMM)(all,r,REG)
+    p_VCONS(i,r) = p_P(i,r) + p_QCONS(i,r);
+
+
+!<  --------------------------------------------------------------------
+    III.B. GLOBAL MARKET CLEARING EQUATIONS FOR CROPS
+   --------------------------------------------------------------------    >!
+!
+                                        QDCROPr
+                                          |
+                                          |
+********************         |-------------------------|
+ Consumers' Crop CES         |           ESUBr         |
+********************         |                         |
+                      QDCROPr("local")          QDCROPr("global")
+                             =                         =
+                       QSCROPr("local")          QSCROPr("global")
+                             |                         |
+********************         |          ETRANSr        |
+Producers' Crop CET          |-------------------------|
+********************                      |
+                                          |
+                                       QSCROPr
+
+    In order to capture international trade, we introduce here regional and
+    international markets for crops. Consumers and producers have access to
+    regional and international crop markets depending on the elasticities of
+    substitution and transformation that they face.
+
+    Here, global biofuel demand is introduced as a global shifter in the
+    crop consumption side.                                                  !
+
+Set MKT # set of crop markets (local, global) #
+      Read elements from file GRIDSETS header "MKT";
+
+Coefficient (parameter) (all,r,REG)                         ESUBr(r)
+     # substitution elasticity between local and global crops #;
+      Read ESUBr   from file GRIDPARM header "ESUB";
+
+Coefficient (parameter) (all,r,REG)                         ETRANSr(r)
+     # transformation elasticity between local and global crops #;
+      Read ETRANSr   from file GRIDPARM header "ETRA";
+
+Variable (levels) (all,r,REG) (all,i,FOOD_COMM) (all,m,MKT) QDCROPr(r,i,m)
+     # regional crop demand by use and by source #;
+      Read QDCROPr   from file GRIDDATA header "QDCP";
+
+Variable (levels) (all,r,REG) (all,m,MKT)                   QSCROPr(r,m)
+     # regional crop supply and by source #;
+      Read QSCROPr   from file GRIDDATA header "QSCP";
+
+Variable (levels)(all,r,REG)                                PCROPr_loc(r)
+     # "local" crop prices #;
+Formula (initial)(all,r,REG)
+     PCROPr_loc(r) = PCROPr(r);
+
+Coefficient  (all,r,REG) (all,m,MKT)                        SHRQDCROPr(r,m)
+    # share of crop demand by source #;
+    Formula (all,r,REG) (all,m,MKT)                         SHRQDCROPr(r,m)
+    = sum(i, FOOD_COMM, QDCROPr(r,i,m)) /
+              sum(j, FOOD_COMM, sum(k, MKT, QDCROPr(r,j,k)));
+
+!   Dummy coefficients in CET crop markets   !
+Coefficient (parameter) (all,m,MKT) ISLOCAL(m) # dummy for local markets #;
+    Formula (initial) ISLOCAL("local") = 1; (initial)ISLOCAL("global") = 0;
+Coefficient (parameter) (all,m,MKT) ISGLOBAL(m) # dummy for global market #;
+    Formula (initial) ISGLOBAL("global") = 1; (initial)ISGLOBAL("local") = 0;
+
+!   =======================
+    Consumers' Crop CES Nest
+    =======================   !
+Equation E_QCONS_mkt
+# derived demand for direct crops by market #
+    (all,r,REG)(all,m,MKT)
+    p_QDCROPr(r,"Crops",m) =
+         ISLOCAL(m)*{p_QCONS("Crops",r)
+- ESUBr(r) * [p_PCROPr_loc(r) - p_P("Crops",r)]} +
+        ISGLOBAL(m)*{p_QCONS("Crops",r)
+- ESUBr(r) * [p_PCROP - p_P("Crops",r)]}  ;
+
+Equation E_QCRPFEED_mkt
+# derived demand for crops for feed use by market #
+    (all,r,REG)(all,m,MKT)
+    p_QDCROPr(r,"Livestock",m) =
+         ISLOCAL(m)*{p_QCRPFEED(r)
+- ESUBr(r) * [p_PCROPr_loc(r) - p_P("Crops",r)]} +
+        ISGLOBAL(m)*{p_QCRPFEED(r)
+- ESUBr(r) * [p_PCROP - p_P("Crops",r)]}  ;
+
+Equation E_QCRPFOOD_mkt
+# derived demand for crops for use in the proc. food sector #
+    (all,r,REG)(all,m,MKT)
+    p_QDCROPr(r,"Proc_Food",m) =
+         ISLOCAL(m)*{p_QCRPFOOD(r)
+- ESUBr(r) * [p_PCROPr_loc(r) - p_P("Crops",r)]} +
+        ISGLOBAL(m)*{p_QCRPFOOD(r)
+- ESUBr(r) * [p_PCROP - p_P("Crops",r)]}  ;
+
+Equation E_P
+# regional crop price faced by consumers: mix of local & global prices  #
+    (all,r,REG)
+    p_P("Crops",r) =
+           SHRQDCROPr(r,"local")  * p_PCROPr_loc(r)  +
+           SHRQDCROPr(r,"global") * p_PCROP ;
+
+!   ========================
+    Producers' Crop CET Nest
+    ========================   !
+
+Equation E_QSCROP_mkt
+    # supply of crops by market #
+    (all,r,REG)(all,m,MKT)
+       p_QSCROPr(r,m) =
+           ISLOCAL(m) * {p_QCROPr(r)
++ ETRANSr(r) * [p_PCROPr_loc(r) - p_PCROPr(r)] } +
+           ISGLOBAL(m)* {p_QCROPr(r)
++ ETRANSr(r) * [p_PCROP - p_PCROPr(r)]}
+;
+
+Coefficient (all,r,REG) (all,m,MKT)                         SHRQSCROPr(r,m)
+    # share of crop supply by source #;
+    Formula (all,r,REG) (all,m,MKT)                         SHRQSCROPr(r,m)
+    = QSCROPr(r,m) / sum(k, MKT, QSCROPr(r,k));
+
+Equation E_PCROPr
+    # regional crop price faced by producers: mix of local & global  #
+    (all,r,REG)
+    p_PCROPr(r) =
+           SHRQSCROPr(r,"local")  * p_PCROPr_loc(r)  +
+           SHRQSCROPr(r,"global") * p_PCROP;
+
+Equation (levels) E_PCROPr_loc
+    # local crop demand and supply balance #
+    (all,r,REG)
+       QSCROPr(r,"local")
+            = sum(i, FOOD_COMM, QDCROPr(r,i,"local")) + QCRPBIOF(r);
+
+Equation (levels) E_PCROP
+    # crop demand and supply balance in the global market #
+    sum(r, REG, QSCROPr(r,"global")) =
+    sum(i, FOOD_COMM, sum(r, REG, QDCROPr(r,i,"global")));
+
+Variable (levels)                                           PCROP_QS
+     # global average producer crop price #;
+    Formula&Equation (levels) E_PCROP_QS
+    PCROP_QS = sum(r, REG, VCROPr(r))/sum(r, REG, QCROPr(r));
+
+Variable (levels)                                           PCROP_QD
+     # global average consumer crop price #;
+    Formula&Equation (levels) E_PCROP_QD
+    PCROP_QD = sum(r, REG, VCONS("Crops",r))/sum(r, REG, QCONS("Crops",r));
+
+Variable (levels) (all,r,REG)                               QCRPTRADEr(r)
+     # regional crop trade balance exports less imports #;
+    Formula&Equation (levels) E_QCRPTRADEr
+    (all,r,REG)
+    QCRPTRADEr(r) =  QSCROPr(r,"global")  -
+                     sum(i, FOOD_COMM, QDCROPr(r,i,"global"))
+            + 0.000000001 ;
+! need to add small number to prevent singularity !
+
+!<  LIVESTOCK & PROCESSED FOOD PRODUCTION
+    ------------------------------------------------------------------    >!
+!<  Coeff. & Var. Related to Livestock & Proc. Food Prod.
+    ****************************************************************       >!
+!          Prices and quantities of non-crop inputs                         !
+Variable (levels) (all,r,REG)                            QNCRPFEED(r)
+    # pseudo qty. of non-feed inputs used in livestock prod. (in M USD) #;
+Variable (levels) (all,r,REG)                            QNCRPFOOD(r)
+    # pseudo qty. of non-crop inputs used in proc. food prod. (in M USD) #;
+Variable (levels) (all,r,REG)                            VNCRPFEED(r)
+    # value of non-feed inputs used in livestock prod. (in M USD) #;
+Variable (levels) (all,r,REG)                            VNCRPFOOD(r)
+    # value of non-crop inputs used in proc. food prod. (in M USD) #;
+Variable (levels) (all,r,REG)                            PNCRPFEED(r)
+    # price index of non-feed inputs in livestock prod. (1 = 2006) #;
+Variable (levels) (all,r,REG)                            PNCRPFOOD(r)
+    # price index of non-crop inputs in proc. food prod. (1 = 2006) #;
+
+!         Elasticities of substitution                                      !
+Coefficient (Parameter)                                      ECRPFEED
+    # global elasticity of subs. in prod. of livestock #;
+Coefficient (Parameter)                                      ECRPFOOD
+    # global elasticity of subs. in prod. of proc. foods #;
+
+!         Cost Shares                                                       !
+Coefficient (all,r,REG)                                  SHRCRPFEED(r)
+    # cost share of feed inputs in livestock sector #;
+Coefficient (all,r,REG)                                  SHRNCRPFEED(r)
+    # cost share of non-feed inputs in livestock sector #;
+Coefficient (all,r,REG)                                  SHRCRPFOOD(r)
+    # cost share of crop inputs in processed food sector #;
+Coefficient (all,r,REG)                                  SHRNCRPFOOD(r)
+    # cost share of non-crop inputs in processed food sector #;
+
+    Read PNCRPFEED   from file GRIDDATA header "PNF";
+         PNCRPFOOD   from file GRIDDATA header "PNPR";
+         VNCRPFEED   from file GRIDDATA header "VNF";
+         VNCRPFOOD   from file GRIDDATA header "VNPR";
+         ECRPFEED    from file GRIDPARM header "EFED";
+         ECRPFOOD    from file GRIDPARM header "EFOD";
+
+!         Formulas for initializing QNCRPFEED & QNCRPFOOD                   !
+     Formula (initial) (all,r,REG)                       QNCRPFEED(r)
+         = VNCRPFEED(r);
+     Formula (initial) (all,r,REG)                       QNCRPFOOD(r)
+         = VNCRPFOOD(r);
+
+!         Formulas for calculating cost shares in these sectors             !
+     Formula (all,r,REG)                                 SHRCRPFEED(r)
+         =  QCRPFEED(r) * P("Crops",r)
+/ [ VNCRPFEED(r) + QCRPFEED(r) * P("Crops",r)];
+     Formula (all,r,REG)                                 SHRNCRPFEED(r)
+         = 1 - SHRCRPFEED(r) ;
+     Formula (all,r,REG)                                 SHRCRPFOOD(r)
+         =  QCRPFOOD(r) * P("Crops",r)
+/ [ VNCRPFOOD(r) + QCRPFOOD(r) * P("Crops",r)];
+     Formula (all,r,REG)                                 SHRNCRPFOOD(r)
+         = 1 - SHRCRPFOOD(r) ;
+
+Equation E_VNCRPFOODg (all,r,REG)
+    p_VNCRPFOOD(r)      = p_QNCRPFOOD(r) + p_PNCRPFOOD(r);
+Equation E_VNCRPFEEDg (all,r,REG)
+    p_VNCRPFEED(r)      = p_QNCRPFEED(r) + p_PNCRPFEED(r);
+
+!<  Var. Related to Tech. Chg. in Lvstck & Proc. Food Prod.
+    ****************************************************************       >!
+!         Technical change variables in the livestock sector           !
+Variable (levels) (all,r,REG)                            AOCRPFEED(r)
+    # hicks-neutral eff. index in livestock prod. #;
+Variable (levels) (all,r,REG)                            AFCRPFEED(r)
+    # feed efficiency index #;
+Variable (levels)                                            AFCRPFEEDW
+    # sub-component of feed eff. index: global #;
+Variable (levels) (all,r,REG)                            AFCRPFEEDr(r)
+    # sub-component of feed eff. index: regional #;
+Variable (levels) (all,r,REG)                            AFNCRPFEED(r)
+    # non-feed efficiency index #;
+Variable (levels)                                            AFNCRPFEEDW
+    # sub-component of the non-feed eff. index: global #;
+Variable (levels) (all,r,REG)                            AFNCRPFEEDr(r)
+    # sub-component of the non-feed eff. index: regional #;
+
+!         Technical change variables in the processed food sector      !
+Variable (levels) (all,r,REG)                            AOCRPFOOD(r)
+    # hicks-neutral eff. index in proc. food prod. #;
+Variable (levels) (all,r,REG)                            AFCRPFOOD(r)
+    # crop input efficiency index in proc. food prod. #;
+Variable (levels)                                            AFCRPFOODW
+    # sub-comp. of crop input eff. index: global #;
+Variable (levels) (all,r,REG)                            AFCRPFOODr(r)
+    # sub-comp. of crop input eff. index: regional #;
+Variable (levels) (all,r,REG)                            AFNCRPFOOD(r)
+    # eff. index of non-crop inputs in proc. food prod.#;
+Variable (levels)                                            AFNCRPFOODW
+    # sub-comp. of the non-crop eff. index: global #;
+Variable (levels) (all,r,REG)                            AFNCRPFOODr(r)
+    # sub-comp. of the non-crop eff. index: regional #;
+
+!         Formulas initializing values of tech. change variables            !
+     Formula (initial) (all,r,REG)    AOCRPFEED(r)   = 1;
+     Formula (initial) (all,r,REG)    AOCRPFOOD(r)   = 1;
+     Formula (initial) (all,r,REG)    AFCRPFEED(r)   = 1;
+     Formula (initial) (all,r,REG)    AFCRPFOOD(r)   = 1;
+     Formula (initial) (all,r,REG)    AFNCRPFEED(r)  = 1;
+     Formula (initial) (all,r,REG)    AFNCRPFOOD(r)  = 1;
+     Formula (initial)                AFCRPFEEDW     = 1;
+     Formula (initial)                AFCRPFOODW     = 1;
+     Formula (initial)                AFNCRPFEEDW    = 1;
+     Formula (initial)                AFNCRPFOODW    = 1;
+     Formula (initial) (all,r,REG)    AFCRPFEEDr(r)  = 1;
+     Formula (initial) (all,r,REG)    AFCRPFOODr(r)  = 1;
+     Formula (initial) (all,r,REG)    AFNCRPFEEDr(r) = 1;
+     Formula (initial) (all,r,REG)    AFNCRPFOODr(r) = 1;
+
+!    Formulas linking sub-components of tech. change variables             !
+     Equation E_AFNCRPFEED (all,r,REG)                   p_AFNCRPFEED(r)
+        = p_AFNCRPFEEDW + p_AFNCRPFEEDr(r);
+     Equation E_AFNCRPFOOD (all,r,REG)                   p_AFNCRPFOOD(r)
+        = p_AFNCRPFOODW + p_AFNCRPFOODr(r);
+     Equation E_AFCRPFEED (all,r,REG)                    p_AFCRPFEED(r)
+        = p_AFCRPFEEDW + p_AFCRPFEEDr(r);
+     Equation E_AFCRPFOOD (all,r,REG)                    p_AFCRPFOOD(r)
+        = p_AFCRPFOODW + p_AFCRPFOODr(r);
+
+
+!   Total Factor Productivity Indices
+    ----------------------------------------------------------------------  !
+Variable (levels) (all,r,REG)                            TFP_LVSTOCK(r)
+     # TFP for livestock sector by reg #;
+     Formula&Equation (levels) E_TFP_LVSTOCK (all,r,REG) TFP_LVSTOCK(r)
+     = AOCRPFEED(r) * [({P("Crops",r) * QCRPFEED(r)}
+       /{VCONS("livestock",r)}) * AFCRPFEED(r) + ({PNCRPFEED(r)
+       * QNCRPFEED(r)}/{VCONS("livestock",r)}) * AFNCRPFEED(r)];
+
+Variable (levels)                                            TFP_LVSTOCKW
+     # TFP for livestock sector (global)  #;
+     Formula&Equation (levels) E_TFP_LVSTOCKW                TFP_LVSTOCKW
+     = sum(y, REG, [VCONS("livestock",y)
+            /sum(k, REG, VCONS("livestock",k))]
+            * TFP_LVSTOCK(y));
+
+Variable (levels) (all,r,REG)                            TFP_PROC_FD(r)
+     # TFP for proc. food sectors by reg #;
+     Formula&Equation (levels) E_TFP_PROC_FD (all,r,REG) TFP_PROC_FD(r)
+     = AOCRPFOOD(r) * [({P("Crops",r) * QCRPFOOD(r)}/
+          {VCONS("proc_food",r)}) * AFCRPFOOD(r) + ({PNCRPFOOD(r)
+          * QNCRPFOOD(r)}/{VCONS("proc_food",r)}) * AFNCRPFOOD(r)];
+
+Variable (levels)                                            TFP_PROC_FDW
+     # TFP for proc. food sectors (global) #;
+     Formula&Equation (levels) E_TFP_PROC_FDW                TFP_PROC_FDW
+     = sum(y, REG, [VCONS("Proc_Food",y)
+            /sum(k, REG, VCONS("Proc_Food",k))]
+            * TFP_PROC_FD(y));
+
+!<  Key Equations in Livestock & Proc. Food Production
+    ****************************************************************       >!
+!   Long Run Derived Demand for Feed inputs
+    --------------------------------------------------------------------    !
+Equation E_QCRPFEED
+    # determines the endogenous use of feed in livestock production #
+    ! variables are in percent changes !
+    (all,r,REG)
+    p_QCRPFEED(r) + p_AFCRPFEED(r) =
+        p_QCONS("Livestock",r) - p_AOCRPFEED(r)
+        - ECRPFEED * [p_P("Crops",r) - p_AFCRPFEED(r)
+        - p_P("Livestock",r) - p_AOCRPFEED(r)];
+
+!   Long Run Derived Demand for Nonfeed Inputs
+    --------------------------------------------------------------------    !
+Equation E_QNCRPFEED
+    # determines the endogenous use of nonfeed in livestock production #
+    ! variables are in percent changes !
+    (all,r,REG)
+    p_QNCRPFEED(r) + p_AFNCRPFEED(r) =
+      p_QCONS("Livestock",r) - p_AOCRPFEED(r)
+       - ECRPFEED * [p_PNCRPFEED(r) - p_AFNCRPFEED(r)
+       - p_P("Livestock",r) - p_AOCRPFEED(r)];
+
+!  Long Run Derived Demand for Crop inputs in Proc. Food
+    --------------------------------------------------------------------    !
+Equation E_QCRPFOOD
+    # determines the endogenous use of crop inputs in proc. food #
+    ! variables are in percent changes !
+    (all,r,REG)
+    p_QCRPFOOD(r) + p_AFCRPFOOD(r)  =
+        p_QCONS("Proc_Food",r) - p_AOCRPFOOD(r)
+         - ECRPFOOD * [p_P("Crops",r) - p_AFCRPFOOD(r)
+         - p_P("Proc_Food",r) - p_AOCRPFOOD(r)];
+
+!  Long Run Derived Demand for Noncrop inputs used in Proc. Food
+    --------------------------------------------------------------------    !
+Equation E_QNCRPFOOD
+    # determines the endogenous use of non-crop inputs in proc. food #
+    ! variables are in percent changes !
+    (all,r,REG)
+    p_QNCRPFOOD(r) + p_AFNCRPFOOD(r)  =
+      p_QCONS("Proc_Food",r) - p_AOCRPFOOD(r)
+       - ECRPFOOD * [p_PNCRPFOOD(r) - p_AFNCRPFOOD(r)
+       - p_P("Proc_Food",r) - p_AOCRPFOOD(r)];
+
+!  Zero Profit Condition for Livestock Producers
+    --------------------------------------------------------------------    !
+Equation E_QCONS_LIVESTOCK
+    # determines the endogenous output of the livestock sector #
+    !   (i.e. market clearing condition in each income region )!
+    ! variables are in percent changes !
+    (all,r,REG)
+     p_P("Livestock",r) + p_AOCRPFEED(r) =
+               [SHRCRPFEED(r)] * [p_P("Crops",r) - p_AFCRPFEED(r)] +
+               [SHRNCRPFEED(r)] * [p_PNCRPFEED(r) - p_AFNCRPFEED(r)];
+
+!  Zero Profit Condition for Processed Foods Producers
+    --------------------------------------------------------------------    !
+Equation E_QCONS_PRCFOOD
+    # determines the endogenous output of the processed food sector #
+    !   (i.e. market clearing condition in each income region )!
+    ! variables are in percent changes !
+    (all,r,REG)
+    p_P("Proc_Food",r) + p_AOCRPFOOD(r) =
+                  [SHRCRPFOOD(r)] * [p_P("Crops",r) - p_AFCRPFOOD(r)] +
+                 [SHRNCRPFOOD(r)] * [p_PNCRPFOOD(r) - p_AFNCRPFOOD(r)];
+
+!<  --------------------------------------------------------------------
+    summary reports: sub-regions
+   --------------------------------------------------------------------    >!
+Variable
+ (levels)(all,m,SUBREG)(all,l,LTYPE) QCROPml(m,l) # crop production #;
+ (levels)(all,m,SUBREG)(all,l,LTYPE) QLANDml(m,l) # cropland area by type #;
+ (levels)(all,m,SUBREG)(all,l,LTYPE) QNITRml(m,l) # N fertilizer applied #;
+ (levels)(all,m,SUBREG)(all,l,LTYPE) QLABRml(m,l) # hours of farm work #;
+ (levels)(all,m,SUBREG)(all,l,LTYPE) QCAPml(m,l) # capital use #;
+ (levels)(all,m,SUBREG) QWATSm(m) # srf water applied #;
+ (levels)(all,m,SUBREG) QWATGm(m) # grd water applied #;
+ (levels)(all,m,SUBREG) QWATRm(m) # tot water applied #;
+ (levels)(all,m,SUBREG) QLANDm(m) # cropland area #;
+ (levels)(all,m,SUBREG) QNITRm(m) # N fertilizer applied #;
+ (levels)(all,m,SUBREG) QLABRm(m) # hours of farm work #;
+ (levels)(all,m,SUBREG) QCAPm(m) # capital use #;
+
+Formula & Equation E_QCROPml (all,m,SUBREG)(all,l,LTYPE)  
+  QCROPml(m,l) = sum(g, GRID: GRID2SREG(g) EQ m, QCROPgl(g,l));
+
+Formula & Equation E_QLANDml (all,m,SUBREG)(all,l,LTYPE)  
+  QLANDml(m,l) = sum(g, GRID: GRID2SREG(g) EQ m, QLANDgl(g,l));
+
+Formula & Equation E_QNITRml (all,m,SUBREG)(all,l,LTYPE)  
+  QNITRml(m,l) = sum(g, GRID: GRID2SREG(g) EQ m, QNITROgl(g,l));
+
+Formula & Equation E_QLABRml (all,m,SUBREG)(all,l,LTYPE)  
+  QLABRml(m,l) = sum(g, GRID: GRID2SREG(g) EQ m, QLABORgl(g,l));
+
+Formula & Equation E_QCAPml (all,m,SUBREG)(all,l,LTYPE)  
+  QCAPml(m,l) = sum(g, GRID: GRID2SREG(g) EQ m, QCAPgl(g,l));
+
+Formula & Equation E_QLANDm (all,m,SUBREG)
+  QLANDm(m) = sum(l, LTYPE, QLANDml(m,l));
+
+Formula & Equation E_QNITRm (all,m,SUBREG)
+  QNITRm(m) = sum(l, LTYPE, QNITRml(m,l));
+
+Formula & Equation E_QLABRm (all,m,SUBREG)
+  QLABRm(m) = sum(l, LTYPE, QLABRml(m,l));
+
+Formula & Equation E_QCAPm (all,m,SUBREG)
+  QCAPm(m) = sum(l, LTYPE, QCAPml(m,l));
+
+Formula & Equation E_QWATGm (all,m,SUBREG) 
+  QWATGm(m) = sum(l, LTYPE,sum(g, GRID: GRID2SREG(g) EQ m, QWATGRDgl(g,l)));
+
+Formula & Equation E_QWATSm (all,m,SUBREG)  
+  QWATSm(m) = sum(l, LTYPE,sum(g, GRID: GRID2SREG(g) EQ m, QWATSRFgl(g,l)));
+
+Formula & Equation E_QWATRm (all,m,SUBREG) 
+  QWATRm(m) = QWATSm(m) + QWATGm(m);
+
+!<  --------------------------------------------------------------------
+    condensation to make the model solve faster
+   --------------------------------------------------------------------    >!
+omit p_AFWATSGgl;
+omit p_AFWEQPTgl;
+omit p_AFWATSGg;
+omit p_AFWEQPTg;
+omit p_AFWATSG;
+omit p_AFWEQPT;
+
+omit p_AFLABORg  ;
+omit p_AOCROPg   ;
+omit p_AFNITROg  ;
+omit p_AFLANDg  ;
+omit p_AFNLANDg  ;
+omit p_AFWATERg  ;
+
+Backsolve p_QLABORgl using E_QLABORgl;
+Backsolve p_QCAPgl using E_QCAPgl;
+
+Backsolve p_PLABORgl using E_PLABORgl;
+Backsolve p_PCAPgl using E_PCAPgl;
+
+Substitute p_AFLABOR using E_AFLABOR;
+Substitute p_AOCROP  using E_AOCROP;
+Substitute p_AFNITRO using E_AFNITRO;
+Substitute p_AFLAND  using E_AFLAND;
+Substitute p_AFNLAND using E_AFNLAND;
+Substitute p_AFWATER using E_AFWATER;
+
+Substitute p_QWATERgl   using E_QWATERgl ;
+Substitute p_QLANDWTRgl using E_QLANDWTRgl ;
+Substitute p_QAUGLANDgl using E_QAUGLANDgl ;
+
+Backsolve  p_PWEQPTgl using E_PWEQPTgl ;
+Backsolve  p_QWEQPTgl using E_QWEQPTgl ;
+
+Backsolve  P_QNLANDgl using E_QNLANDgl ;
+
+Substitute p_PAUGLANDgl using E_PAUGLANDgl ;
+Substitute p_PLANDWTRgl using E_PLANDWTRgl ;
+Substitute p_PWATERgl   using E_PWATERgl ;
+
+Backsolve  p_QWATSRFgl using E_QWATSRFgl ;
+Backsolve  p_QWATGRDgl using E_QWATGRDgl ;
+Backsolve  p_PWATSRFgl using E_PWATSRFgl ;
+Backsolve  p_PWATGRDgl using E_PWATGRDgl ;
+
+Backsolve  p_QWATSGgl using E_QWATSGgl ;
+Backsolve  p_PNLANDgl using E_PNLANDgl ;
+Backsolve  p_QLANDgl  using E_QLANDgl  ;
+Backsolve  p_PWATSGgl using E_PWATSGgl ;
+Backsolve  p_QNITROgl using E_QNITROgl ;
+Backsolve  p_PLANDgl  using E_PLANDgl  ;
+Backsolve  p_QCROPgl  using E_QCROPgl  ;
+Backsolve  p_PCROPgl  using E_PCROPgl;
+
+Substitute p_PLANDg   using E_PLANDg  ;
+Backsolve  p_QLANDg   using E_QLANDg  ;
+
+Substitute p_PLANDCOMPg using E_PLANDCOMPg;
+
+Backsolve  p_PNITROgl using E_PNITROgl;
+
+
+!<  --------------------------------------------------------------------
+    summary reports: regional-global
+   --------------------------------------------------------------------    >!
+
+Variable
+(levels) (all,r,REG)(all,l,LTYPE) QCROPrl(r,l)
+# Crop output by reg (in 1000 MT: Corn-eq.) #;
+! (levels) (all,r,REG) QCROPr(r) #  #;!
+ (levels) QCROPwi  #  #;
+ (levels) QCROPwr  #  #;
+ (levels) QCROPw  #  #;
+Formula & Equation E_QCROPrl (all,r,REG)(all,l,LTYPE)
+  QCROPrl(r,l) = sum(g, GRID: GRID2REG(g) EQ r, QCROPgl(g,l));
+!Formula (initial)  (all,r,REG)
+  QCROPr(r)  = sum(l, LTYPE, QCROPrl(r,l));!
+Formula & Equation E_QCROPwi
+  QCROPwi  = sum(r, REG, QCROPrl(r,"irrigated"));
+Formula & Equation E_QCROPwr
+  QCROPwr  = sum(r, REG, QCROPrl(r,"rainfed"));
+Formula & Equation E_QCROPw
+  QCROPw = QCROPwi + QCROPwr;
+
+Variable
+ (levels)(all,r,REG)(all,l,LTYPE) QLANDrl(r,l)  #  #;
+ (levels)(all,r,REG) QLANDr(r) #  #;
+ (levels) QLANDwi #  #;
+ (levels) QLANDwr #  #;
+ (levels) QLANDw  #  #;
+Formula & Equation E_QLANDrl (all,r,REG)(all,l,LTYPE)
+  QLANDrl(r,l) = sum(g, GRID: GRID2REG(g) EQ r, QLANDgl(g,l));
+Formula & Equation E_QLANDr (all,r,REG)
+  QLANDr(r)  = sum(l, LTYPE, QLANDrl(r,l));
+Formula & Equation E_QLANDwi
+  QLANDwi  = sum(r, REG, QLANDrl(r,"irrigated"));
+Formula & Equation E_QLANDwr
+  QLANDwr  = sum(r, REG, QLANDrl(r,"rainfed"));
+Formula & Equation E_QLANDw
+  QLANDw = QLANDwi + QLANDwr;
+
+Variable
+(levels) (all,r,REG)(all,l,LTYPE) QNITROrl(r,l)
+# Nitrogen use by reg (in 1000 MT) #;
+! (levels) (all,r,REG) QNITROr(r) #  #;!
+ (levels) QNITROwi  #  #;
+ (levels) QNITROwr  #  #;
+ (levels) QNITROw  #  #;
+Formula & Equation E_QNITROrl (all,r,REG)(all,l,LTYPE)
+  QNITROrl(r,l) = sum(g, GRID: GRID2REG(g) EQ r, QNITROgl(g,l));
+!Formula (initial)  (all,r,REG)
+  QNITROr(r)  = sum(l, LTYPE, QNITROrl(r,l));!
+Formula & Equation E_QNITROwi
+  QNITROwi  = sum(r, REG, QNITROrl(r,"irrigated"));
+Formula & Equation E_QNITROwr
+  QNITROwr  = sum(r, REG, QNITROrl(r,"rainfed"));
+Formula & Equation E_QNITROw
+  QNITROw = QNITROwi + QNITROwr;
+
+Variable
+ (levels) (all,r,REG) QWATSRFr(r) #  #;
+ (levels) QWATSRFw  #  #;
+Formula & Equation E_QWATSRFr (all,r,REG)
+  QWATSRFr(r)  = sum(l, LTYPE, sum(g, GRID: GRID2REG(g) EQ r, QWATSRFgl(g,l)));
+Formula & Equation E_QWATSRFw
+  QWATSRFw = sum(r, REG, QWATSRFr(r));
+
+Variable
+ (levels) (all,r,REG) QWATGRDr(r) #  #;
+ (levels) QWATGRDw  #  #;
+Formula & Equation E_QWATGRDr (all,r,REG)
+  QWATGRDr(r)  = sum(l, LTYPE, sum(g, GRID: GRID2REG(g) EQ r, QWATGRDgl(g,l)));
+Formula & Equation E_QWATGRDw
+  QWATGRDw = sum(r, REG, QWATGRDr(r));
+
+Variable
+ (levels) (all,r,REG)(all,l,LTYPE) QYIELDrl(r,l)  #   #;
+ (levels) (all,r,REG) QWATSGr(r) #  #;
+ (levels) (all,r,REG) QWAT2CROPr(r) #  #;
+
+Formula & Equation E_QWATSGr (all,r,REG)
+  QWATSGr(r)  = QWATGRDr(r) + QWATSRFr(r)  ;
+
+Formula & Equation E_QWAT2CROPr (all,r,REG)
+  QWAT2CROPr(r)  = QWATSGr(r) / QCROPrl(r,"irrigated")  ;
+
+Formula & Equation E_QYIELDrl (all,r,REG) (all,l,LTYPE)
+  QYIELDrl(r,l)  = QCROPrl(r,l) / QLANDrl(r,l) ;
+
+Variable
+  (all,r,REG) p_YIELDr(r)     # crop yields #;
+  (all,r,REG) p_QWATERha_r(r) # total crop per area #;
+  (all,r,REG) XWATinCROP(r)  # total water per crop production #;
+
+Equation
+  E_XYIELDr     (all,r,REG) p_YIELDr(r)     = p_QCROPr(r) - p_QLANDr(r);
+  E_XWATinAREAr (all,r,REG) p_QWATERha_r(r) = p_QWATSGr(r)  - p_QLANDr(r);
+  E_XWATinCROP  (all,r,REG) XWATinCROP(r)  = p_QWATSGr(r)  - p_QCROPr(r) ;
+
+!
+*****************************************************************************
+                 for the mini model analyses
+*****************************************************************************
+!
+![[!
+Set SET1  # mini model grid cell IDs # 
+ read elements from file GRIDSETS header "SET1";
+ subset SET1 is subset of GRID;
+
+Variable 
+(levels) (all,j,SET1)(all,l,LTYPE) QLANDjl(j,l)
+# cropland area by j & l (1000 HA) #;
+
+Coefficient
+(all,j,SET1)(all,l,LTYPE) VLANDjl(j,l)   # Val land   by j & l (1000 USD) #;
+(all,j,SET1)(all,l,LTYPE) VNITROjl(j,l)   # Val nitr frt by j & l (1000 USD) #;
+(all,j,SET1)(all,l,LTYPE) VWATSGjl(j,l)   # Val water  by j & l (1000 USD) #;
+(all,j,SET1)(all,l,LTYPE) VWEQPTjl(j,l)   # Val wat eqpt by j & l (1000 USD) #;
+(all,j,SET1)(all,l,LTYPE) VNLANDjl(j,l)   # Val oth input by j & l (1000 USD) #;
+(all,j,SET1)(all,l,LTYPE) VWATSRFjl(j,l)
+# Val surface water by j & l (1000 USD) #;
+(all,j,SET1)(all,l,LTYPE) VWATGRDjl(j,l)
+# Val groundwater by j & l (1000 USD) #;
+
+Formula
+(initial)(all,j,SET1)(all,l,LTYPE)   VLANDjl(j,l) =   VLANDgl(j,l) ;
+(initial)(all,j,SET1)(all,l,LTYPE)   QLANDjl(j,l) =   QLANDgl(j,l) ;    
+(initial)(all,j,SET1)(all,l,LTYPE)  VNITROjl(j,l) =  VNITROgl(j,l) ;
+(initial)(all,j,SET1)(all,l,LTYPE)  VWEQPTjl(j,l) =  VWEQPTgl(j,l) ;
+(initial)(all,j,SET1)(all,l,LTYPE)  VNLANDjl(j,l) =  VNLANDgl(j,l) ;
+(initial)(all,j,SET1)(all,l,LTYPE) VWATSRFjl(j,l) = VWATSRFgl(j,l) ;
+(initial)(all,j,SET1)(all,l,LTYPE) VWATGRDjl(j,l) = VWATGRDgl(j,l) ;
+
+Coefficient
+(all,j,SET1)(all,l,LTYPE) VCROPjl(j,l)  # Val crop output by j&l (1000 USD) #;
+(all,j,SET1)(all,l,LTYPE) VWATERjl(j,l) # Val irrigation  by j&l (1000 USD) #;
+(all,j,SET1)(all,l,LTYPE) VLNDWTRjl(j,l) # Val land+irrig  by j&l (1000 USD) #;
+(all,j,SET1)(all,l,LTYPE) VAUGLANDjl(j,l) # Val oth+lnd+irrig j&l (1000 USD) #;
+(all,j,SET1)              VLANDj(j)    # Val land input    by j   (1000 USD) #;
+(all,j,SET1)              QLANDj(j)   # Cropland area by j   (1000 HA) #;
+
+Formula
+(all,j,SET1)(all,l,LTYPE) VWATSGjl(j,l)  = VWATSRFjl(j,l) + VWATGRDjl(j,l);
+(all,j,SET1)(all,l,LTYPE) VWATERjl(j,l)  = VWATSGjl(j,l) + VWEQPTjl(j,l);
+(all,j,SET1)(all,l,LTYPE) VLNDWTRjl(j,l) = VWATERjl(j,l) + VLANDjl(j,l) ;
+(all,j,SET1)(all,l,LTYPE) VAUGLANDjl(j,l)= VNLANDjl(j,l) + VLNDWTRjl(j,l) ;
+(all,j,SET1)(all,l,LTYPE) VCROPjl(j,l)   = VNITROjl(j,l) + VAUGLANDjl(j,l) ;
+(all,j,SET1)              VLANDj(j)      = sum{l, LTYPE, VLANDjl(j,l)} ;
+(all,j,SET1)              QLANDj(j)      = sum(l, LTYPE, QLANDjl(j,l)); 
+
+Coefficient
+(all,j,SET1)(all,l,LTYPE) SHR_LANDjl(j,l)    # shr land  in tot cost by j&l #;
+(all,j,SET1)(all,l,LTYPE) SHR_NITROjl(j,l)   # shr nitr  in tot cost by j&l #;
+(all,j,SET1)(all,l,LTYPE) SHR_NLANDjl(j,l)   # shr other in tot cost by j&l #;
+(all,j,SET1)(all,l,LTYPE) SHR_WATSGjl(j,l)
+# shr water S+G  in tot cost by j&l #;
+(all,j,SET1)(all,l,LTYPE) SHR_WEQPTjl(j,l)
+# shr water equipment in tot cost by j&l #;
+(all,j,SET1)(all,l,LTYPE) SHR_OinAUGjl(j,l)  # shr oth   in aug. land by g&l#;
+(all,j,SET1)(all,l,LTYPE) SHR_LinAUGjl(j,l)  # shr land  in aug. land by g&l#;
+(all,j,SET1)(all,l,LTYPE) SHR_WinAUGjl(j,l)  # shr water in aug. land by g&l#;
+(all,j,SET1)(all,l,LTYPE) SHR_LinLWjl(j,l)  # shr land in land+wat+eqpt by g&l#;
+(all,j,SET1)(all,l,LTYPE) SHR_WinLWjl(j,l)
+# shr water in land+wat+eqpt by g&l#;
+(all,j,SET1)(all,l,LTYPE) SHR_WWinWjl(j,l)   # shr wat S+G in wat+eqpt by g&l#;
+(all,j,SET1)(all,l,LTYPE) SHR_WKinWjl(j,l)   # shr Weqpt in wat+eqpt by g&l#;
+(all,j,SET1)(all,l,LTYPE) SHR_QLANDjl(j,l)
+# quantity shr of each land type in CET by g&l#;
+(all,j,SET1)(all,l,LTYPE) SHR_VLANDjl(j,l)  # shr each land type in CET by g&l#;
+
+Zerodivide default 0.20;
+Formula
+(all,j,SET1)(all,l,LTYPE) SHR_LANDjl(j,l) = VLANDjl(j,l)  / VCROPjl(j,l);
+(all,j,SET1)(all,l,LTYPE) SHR_NITROjl(j,l)= VNITROjl(j,l) / VCROPjl(j,l);
+(all,j,SET1)(all,l,LTYPE) SHR_NLANDjl(j,l)= VNLANDjl(j,l) / VCROPjl(j,l);
+(all,j,SET1)(all,l,LTYPE) SHR_WATSGjl(j,l)= VWATSGjl(j,l) / VCROPjl(j,l);
+(all,j,SET1)(all,l,LTYPE) SHR_WEQPTjl(j,l)= VWEQPTjl(j,l) / VCROPjl(j,l);
+
+Zerodivide default 0.333333;
+Formula
+(all,j,SET1)(all,l,LTYPE) SHR_OinAUGjl(j,l) = VNLANDjl(j,l) / VAUGLANDjl(j,l);
+(all,j,SET1)(all,l,LTYPE) SHR_LinAUGjl(j,l) = VLANDjl(j,l)  / VAUGLANDjl(j,l);
+(all,j,SET1)(all,l,LTYPE) SHR_WinAUGjl(j,l) = VWATERjl(j,l) / VAUGLANDjl(j,l);
+
+Zerodivide default 0.50;
+Formula
+(all,j,SET1)(all,l,LTYPE) SHR_LinLWjl(j,l) = VLANDjl(j,l)  / VLNDWTRjl(j,l);
+(all,j,SET1)(all,l,LTYPE) SHR_WinLWjl(j,l) = VWATERjl(j,l) / VLNDWTRjl(j,l) ;
+
+Zerodivide default 0.5;
+Formula
+(all,j,SET1)(all,l,LTYPE) SHR_WWinWjl(j,l) = VWATSGjl(j,l) / VWATERjl(j,l);
+(all,j,SET1)(all,l,LTYPE) SHR_WKinWjl(j,l) = VWEQPTjl(j,l) / VWATERjl(j,l);
+(all,j,SET1)(all,l,LTYPE) SHR_VLANDjl(j,l) =  VLANDjl(j,l) / VLANDj(j);
+(all,j,SET1)(all,l,LTYPE) SHR_QLANDjl(j,l) =  QLANDjl(j,l) / QLANDj(j);
+Zerodivide off;
+
+
+Variable 
+(levels)(all,j,SET1)(all,l,LTYPE)   PCROPjl(j,l)  # price of crops by j&l #;
+(levels)(all,j,SET1)(all,l,LTYPE)   QCROPjl(j,l)  # crop output by j&l    #;
+(levels)(all,j,SET1)(all,l,LTYPE) QWATSRFjl(j,l)
+# vol index surface water by j & l #;
+(levels)(all,j,SET1)(all,l,LTYPE) QWATGRDjl(j,l)
+# vol index groundwater by j & l #;
+(levels)(all,j,SET1)(all,l,LTYPE)  QNITROjl(j,l)  # nitrogen use by j&l   #;
+
+(all,j,SET1)(all,l,LTYPE)  p_QWATSGjl(j,l)  # water use by j&l      #;
+(all,j,SET1)(all,l,LTYPE)  p_PLANDjl(j,l)   # price of cropland by j&l     #;
+(all,j,SET1)(all,l,LTYPE)  p_PNITROjl(j,l)  # price of nitrogen use by j&l #;
+(all,j,SET1)(all,l,LTYPE)  p_PWATSGjl(j,l)  # price of water use by j&l    #;
+(all,j,SET1)(all,l,LTYPE)  p_QNLANDjl(j,l)  # other input by j&l           #;
+(all,j,SET1)(all,l,LTYPE)  p_PNLANDjl(j,l)  # price of other input by j&l  #;
+(all,j,SET1)(all,l,LTYPE)  p_QWEQPTjl(j,l)  # irrig eqpt by j&l            #;
+(all,j,SET1)(all,l,LTYPE)  p_PWEQPTjl(j,l)  # price of irrig eqpt by j&l   #;
+(all,j,SET1)(all,l,LTYPE)  p_PAUGLANDjl(j,l)  # price of aug. land by j&l     #;
+(all,j,SET1)(all,l,LTYPE)  p_QAUGLANDjl(j,l)  # quantity of aug. land by j&l  #;
+(all,j,SET1)(all,l,LTYPE)  p_PLANDWTRjl(j,l)  # price of land+irrig by j&l    #;
+(all,j,SET1)(all,l,LTYPE)  p_QLANDWTRjl(j,l)  # quantity of land+irrig by j&l #;
+(all,j,SET1)(all,l,LTYPE)  p_PWATERjl(j,l)   # price of water+eqpt by j&l    #;
+(all,j,SET1)(all,l,LTYPE)  p_QWATERjl(j,l)   # quantity of water+eqpt by j&l #;
+(all,j,SET1)               p_PLANDj(j)       # price of land by grid         #;
+(all,j,SET1)        p_PLANDCOMPj(j)  # composite price of cropland by g   #;
+(all,j,SET1)               p_QLANDj(j)       # quantity of land by grid      #;
+
+Formula
+(initial)(all,j,SET1)(all,l,LTYPE)   QCROPjl(j,l) = QCROPgl(j,l)  ;
+(initial)(all,j,SET1)(all,l,LTYPE)   PCROPjl(j,l) = PCROPgl(j,l)  ;
+(initial)(all,j,SET1)(all,l,LTYPE) QWATSRFjl(j,l) = QWATSRFgl(j,l)  ;
+(initial)(all,j,SET1)(all,l,LTYPE) QWATGRDjl(j,l) = QWATGRDgl(j,l)  ;
+(initial)(all,j,SET1)(all,l,LTYPE)  QNITROjl(j,l) = QNITROgl(j,l)  ;
+
+Update
+(all,j,SET1)(all,l,LTYPE)  VLANDjl(j,l) =  p_PLANDjl(j,l)* p_QLANDjl(j,l);
+(all,j,SET1)(all,l,LTYPE) VNITROjl(j,l) = p_PNITROjl(j,l)*p_QNITROjl(j,l);
+(all,j,SET1)(all,l,LTYPE) VNLANDjl(j,l) = p_PNLANDjl(j,l)*p_QNLANDjl(j,l);
+(all,j,SET1)(all,l,LTYPE) VWEQPTjl(j,l) = p_PWEQPTjl(j,l)*p_QWEQPTjl(j,l);
+
+Coefficient
+(all,j,SET1)(all,l,LTYPE) SHR_SinSGjl(j,l)     # shr srf  in tot water by j&l #;
+(all,j,SET1)(all,l,LTYPE) SHR_GinSGjl(j,l)     # shr grd  in tot water by j&l #;
+
+Zerodivide default 0.50;
+Formula
+(all,j,SET1)(all,l,LTYPE) SHR_SinSGjl(j,l) = VWATSRFjl(j,l) / [VWATSRFjl(j,l)+
+VWATGRDjl(j,l)];
+(all,j,SET1)(all,l,LTYPE) SHR_GinSGjl(j,l) = VWATGRDjl(j,l) / [VWATSRFjl(j,l)+
+VWATGRDjl(j,l)];
+Zerodivide off;
+
+
+Variable 
+(all,j,SET1)(all,l,LTYPE) p_PWATSRFjl(j,l)  # price of surface water by j&l #;
+(all,j,SET1)(all,l,LTYPE) p_PWATGRDjl(j,l)  # price of groundwater by j&l    #;
+
+Update
+(all,j,SET1)(all,l,LTYPE) VWATSRFjl(j,l) = p_PWATSRFjl(j,l)*p_QWATSRFjl(j,l);
+(all,j,SET1)(all,l,LTYPE) VWATGRDjl(j,l) = p_PWATGRDjl(j,l)*p_QWATGRDjl(j,l);
+
+! Sypply of surface water!
+Equation E_PWATSRFjl (all,j,SET1)(all,l,LTYPE)
+p_QWATSRFjl(j,l)  = ETA_WATSRFg(j,l) * p_PWATSRFjl(j,l) + s_QWATSRFgl(j,l); 
+
+! Sypply of groundwater!
+Equation E_PWATGRDjl (all,j,SET1)(all,l,LTYPE)
+p_QWATGRDjl(j,l)  = ETA_WATGRDg(j,l) * p_PWATGRDjl(j,l) + s_QWATGRDgl(j,l); 
+
+! Demand for surface water!
+Equation E_QWATSRFjl (all,j,SET1)(all,l,LTYPE)
+p_QWATSRFjl(j,l) = p_QWATSGjl(j,l) - ESUB_SGg(j,l) * [p_PWATSRFjl(j,l) -
+p_PWATSGjl(j,l)];
+
+! Demand for groundwater!
+Equation E_QWATGRDjl (all,j,SET1)(all,l,LTYPE)
+p_QWATGRDjl(j,l) = p_QWATSGjl(j,l) - ESUB_SGg(j,l) * [p_PWATGRDjl(j,l) -
+p_PWATSGjl(j,l)];
+
+!price index for srf + grd water!
+Equation 
+E_PWATSGjl  (all,j,SET1)(all,l,LTYPE) 
+p_PWATSGjl(j,l) =
+  SHR_SinSGjl(j,l) * [p_PWATSRFjl(j,l) ] +
+  SHR_GinSGjl(j,l) * [p_PWATGRDjl(j,l) ] ;
+
+!supply of total cropland!
+E_QLANDj     (all,j,SET1)   
+p_QLANDj(j) = 
+  ELANDg(j) *  p_PLANDj(j) + s_QLANDg(j);
+
+! QCET !
+! compute change in composite land price index for QCET allocation !
+E_PLANDCOMPj      (all,j,SET1)                           
+p_PLANDCOMPj(j) =  
+  sum(l,LTYPE, SHR_QLANDjl(j,l) * p_PLANDjl(j,l)) ; 
+
+! QCET !
+!allocation of cropland to irrigated and rainfed!
+E_PLANDjl     (all,j,SET1)(all,l,LTYPE)    
+p_QLANDjl(j,l) = 
+  p_QLANDj(j) - ETRAN_LANDg(j) * [p_PLANDjl(j,l) - p_PLANDCOMPj(j)];
+
+! QCET !
+! ensure that land revenue is fully exhausted !
+E_PLANDj      (all,j,SET1)                           
+p_PLANDj(j) + p_QLANDj(j) = 
+  sum(l,LTYPE, SHR_VLANDjl(j,l) * [p_PLANDjl(j,l) + p_QLANDjl(j,l)]) ; 
+
+!supply of irrigation equipments etc!
+E_PWEQPTjl    (all,j,SET1)(all,l,LTYPE)                                      
+p_QWEQPTjl(j,l)  = 
+  EWATKLr(GRID2REG(j))  * p_PWEQPTjl(j,l) + s_QWEQPTg(j);
+
+!Demand for nitrogen fertilizer input !
+E_QNITROjl    (all,j,SET1)(all,l,LTYPE)           
+p_QNITROjl(j,l) + p_AFNITRO(j,l) = 
+ p_QCROPjl(j,l)  - p_AOCROP(j,l) - 
+ ECROPgl(j,l)* [p_PNITROjl(j,l) - p_AFNITRO(j,l) -
+                p_PCROPjl(j,l)  - p_AOCROP(j,l) ];
+
+! regional market / price for nitrogen fertilizer !
+E_PNITROjl    (all,j,SET1)(all,l,LTYPE)  
+p_PNITROjl(j,l) 
+    = p_PNITROr(GRID2REG(j)) + t_PNITROsl(GRID2STATE(j),l)
+    + t_PNITROgl(j,l) + t_PNITROs(GRID2STATE(j)) 
+    + s_PNITROgl(j,l);
+
+!Demand for land input !
+E_QLANDjl     (all,j,SET1)(all,l,LTYPE) 
+p_QLANDjl(j,l) = 
+  p_QLANDWTRjl(j,l) - p_AFLAND(j,l) -
+  EIRRIGgl(j,l)   * [p_PLANDjl(j,l) - p_AFLAND(j,l) - p_PLANDWTRjl(j,l) ] ;
+
+!Demand for water (surface water + groundwater) input!
+E_QWATSGjl     (all,j,SET1)(all,l,LTYPE) 
+p_QWATSGjl(j,l)  
+= p_QWATERjl(j,l) - p_AFWATSG(j,l) 
+- ESUB_WKgl(j,l)  * [p_PWATSGjl(j,l) - p_AFWATSG(j,l) - p_PWATERjl(j,l) ] ;
+
+!Demand for irrigation equipments!
+E_QWEQPTjl     (all,j,SET1)(all,l,LTYPE) 
+p_QWEQPTjl(j,l) 
+= p_QWATERjl(j,l) - p_AFWEQPT(j,l)
+- ESUB_WKgl(j,l)  * [p_PWEQPTjl(j,l) - p_AFWEQPT(j,l) - p_PWATERjl(j,l) ] ;
+
+!Demand for ther inputs!
+E_QNLANDjl    (all,j,SET1)(all,l,LTYPE) 
+p_QNLANDjl(j,l)  
+= p_QAUGLANDjl(j,l)  - p_AFNLAND(j,l) 
+- EAUGLANDgl(j,l) * [p_PNLANDjl(j,l) - p_AFNLAND(j,l) - p_PAUGLANDjl(j,l) ] ;
+
+!regional market / price of labor!
+E_PLABORjl    (all,j,SET1)(all,l,LTYPE)  
+p_PLABORjl(j,l) = p_PLABORr(GRID2REG(j)) ;
+
+!regional market / price of capital!
+E_PCAPjl    (all,j,SET1)(all,l,LTYPE)  
+p_PCAPjl(j,l) = p_PCAPr(GRID2REG(j)) ;
+
+!Quantity index for oth+land+water+eqpt!
+E_QAUGLANDjl  (all,j,SET1)(all,l,LTYPE) 
+p_QAUGLANDjl(j,l) 
+= p_QCROPjl(j,l)  - p_AOCROP(j,l)
+- ECROPgl(j,l)* [p_PAUGLANDjl(j,l) - p_PCROPjl(j,l) - p_AOCROP(j,l)] ;
+
+!Quantity index for water+eqpt!
+E_QWATERjl  (all,j,SET1)(all,l,LTYPE) 
+p_QWATERjl(j,l) 
+= ISIRRI(l) * p_QLANDWTRjl(j,l)
+- ISIRRI(l) * p_AFWATER(j,l)
+- ISIRRI(l) * EIRRIGgl(j,l) * [p_PWATERjl(j,l) - p_AFWATER(j,l) -
+                                 p_PLANDWTRjl(j,l) ] ;
+
+!Quantity index for land+water+eqpt!
+E_QLANDWTRjl  (all,j,SET1)(all,l,LTYPE) 
+p_QLANDWTRjl(j,l) 
+= p_QAUGLANDjl(j,l)
+- EAUGLANDgl(j,l) * [p_PLANDWTRjl(j,l) - p_PAUGLANDjl(j,l) ] ;
+
+!price index for irrigation wat+eqpt!
+E_PWATERjl  (all,j,SET1)(all,l,LTYPE) 
+p_PWATERjl(j,l) 
+= SHR_WWinWjl(j,l) * [p_PWATSGjl(j,l) - p_AFWATSG(j,l)]
++ SHR_WKinWjl(j,l) * [p_PWEQPTjl(j,l) - p_AFWEQPT(j,l)];
+
+!price index for land+water+eqpt!
+E_PLANDWTRjl  (all,j,SET1)(all,l,LTYPE) 
+p_PLANDWTRjl(j,l) 
+= SHR_LinLWjl(j,l) * [p_PLANDjl(j,l)  - p_AFLAND(j,l)] 
++ SHR_WinLWjl(j,l) * [p_PWATERjl(j,l) - p_AFWATER(j,l)]  ;
+
+!price index for oth+land+water+eqpt!
+E_PAUGLANDjl  (all,j,SET1)(all,l,LTYPE) 
+p_PAUGLANDjl(j,l) 
+= SHR_OinAUGjl(j,l) * [p_PNLANDjl(j,l)- p_AFNLAND(j,l)] 
++ SHR_LinAUGjl(j,l) * [p_PLANDjl(j,l) - p_AFLAND(j,l) ]
++ SHR_WinAUGjl(j,l) * [p_PWATERjl(j,l)- p_AFWATER(j,l)] ;
+
+!alternative form of zero profit condition!
+E_QCROPjl     (all,j,SET1)(all,l,LTYPE) 
+P_QCROPjl(j,l)   
+= SHR_LANDjl(j,l)   * [p_QLANDjl(j,l) + p_AFLAND(j,l) ] 
++ SHR_NITROjl(j,l)  * [p_QNITROjl(j,l)+ p_AFNITRO(j,l)]  
++ SHR_NLANDjl(j,l)  * [p_QNLANDjl(j,l)+ p_AFNLAND(j,l)]  
++ SHR_WATSGjl(j,l)  * [p_QWATSGjl(j,l)+ p_AFWATSG(j,l) +p_AFWATER(j,l)]  
++ SHR_WEQPTjl(j,l)  * [p_QWEQPTjl(j,l)+ p_AFWEQPT(j,l) +p_AFWATER(j,l)]  
++ p_AOCROP(j,l);
+
+equation 
+E_PCROPjl     (all,j,SET1)(all,l,LTYPE) 
+p_PCROPjl(j,l) = p_PCROPgl(j,l) ;
+
+!]]!
+!<  --------------------------------------------------------------------
+    Reporting [NEW]
+   --------------------------------------------------------------------    >!
+Coefficient (Parameter)(All,g,GRID) Longitude(g);
+Coefficient (Parameter)(All,g,GRID) Latitude(g) ;
+
+Read Longitude from file GRIDPARM header "LON";
+Read Latitude  from file GRIDPARM header "LAT";
+
+PostSim (Begin) ;
+Set VAR #report variables#
+(LON, LAT, QLand_i, QLand_r, QCROP_i, QCROP_r, QNitro_i, QNitro_r, 
+QWATGRD, QWATSRF, QWATER, QWEQPT, QLAB_i, QLAB_r);
+
+Coefficient (All,g,GRID)(All,v,VAR) pctResults(g,v) ;
+  Formula (All,g,GRID) pctResults(g,"LON") = Longitude(g) ;
+  Formula (All,g,GRID) pctResults(g,"LAT") = Latitude(g)  ;
+  Formula (All,g,GRID) pctResults(g,"QLand_i")  = p_QLANDgl(g, "Irrigated") ;
+  Formula (All,g,GRID) pctResults(g,"QLand_r")  = p_QLANDgl(g, "Rainfed"  ) ;
+  Formula (All,g,GRID) pctResults(g,"QCROP_i")  = p_QCROPgl(g, "Irrigated") ;
+  Formula (All,g,GRID) pctResults(g,"QCROP_r")  = p_QCROPgl(g, "Rainfed"  ) ;
+  Formula (All,g,GRID) pctResults(g,"QNitro_i") = p_QNITROgl(g,"Irrigated") ;
+  Formula (All,g,GRID) pctResults(g,"QNitro_r") = p_QNITROgl(g,"Rainfed"  ) ;
+  Formula (All,g,GRID) pctResults(g,"QWATER")   = p_QWATSGgl(g,"Irrigated") ;
+  Formula (All,g,GRID) pctResults(g,"QWATGRD")  = p_QWATGRDgl(g,"Irrigated") ;
+  Formula (All,g,GRID) pctResults(g,"QWATSRF")  = p_QWATSRFgl(g,"Irrigated") ;
+  Formula (All,g,GRID) pctResults(g,"QWEQPT")   = p_QWEQPTgl(g,"Irrigated") ;
+  Formula (All,g,GRID) pctResults(g,"QLAB_i")   = p_QLABORgl(g,"Irrigated") ;
+  Formula (All,g,GRID) pctResults(g,"QLAB_r")   = p_QLABORgl(g,"Rainfed") ;
+File (New,text,SSE) out_pct;
+Write pctResults  to file out_pct;
+
+File (New,text,SSE) reported_var;
+Write (set) VAR to file reported_var;
+
+
+PostSim (End) ;
