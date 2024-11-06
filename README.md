@@ -18,6 +18,8 @@ This folder contains the command files (*.cmf), which specify the experiment to 
 This folder contains the command files that include not only the impact of human heat stress on labor productivity, but also the projection of changes on socio-economic development (population, per capita GDP, technology, biofuel), crop yield and groundwater extractions during 2010 - 2050.
 ## \shf
 This folder contains the shock files of projected labor productivity loss due to human heat stress for the US (grid cell level) and non-US regions (regional level), which are called in command files.
+
+For additional information about the code to generate these shock files, please refer to https://github.com/ihaqiqi/agLaborHeatUS and https://github.com/wangzhan90/HeatStressPaper_shock
 ## SIMPLEG_IGS.tab
 The source code of model. The simulation with SIMPLE-G requires the General Equilibrium Modelling PACKage (GEMPACK) software.
 ## SIMPLEG_IGS.exe
